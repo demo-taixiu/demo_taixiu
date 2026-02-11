@@ -5,17 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tài Xỉu</title>
 <link rel="stylesheet" href="style.css">
+
+<style>
+.game-box{
+    text-align:center;
+    padding:20px;
+}
+
+.dice{
+    font-size:50px;
+    margin:15px 0;
+    letter-spacing:10px;
+}
+
+.bet-box input{
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    width:150px;
+    text-align:center;
+    font-size:16px;
+}
+
+.result{
+    margin-top:15px;
+    font-weight:bold;
+    font-size:18px;
+}
+</style>
 </head>
 <body onload="updateHeader()">
 
 <div class="header">
-    <div class="logo">TÀI XỈU</div>
-    <div class="vip">VIP <span id="vip"></span></div>
+    <div class="logo">🎲 TÀI XỈU</div>
+    <div>
+        💰 <span id="balance"></span><br>
+        <span class="vip">VIP <span id="vip"></span></span>
+    </div>
 </div>
 
-<div style="padding:20px;text-align:center">
-    <button class="btn gold" onclick="alert('Demo Tài')">TÀI</button>
-    <button class="btn gold" onclick="alert('Demo Xỉu')">XỈU</button>
+<div class="game-box">
+
+    <div class="dice" id="dice">🎲 🎲 🎲</div>
+
+    <div class="bet-box">
+        <input type="number" id="betAmount" placeholder="Nhập tiền cược">
+    </div>
+
+    <div style="margin-top:15px;">
+        <button class="btn gold" onclick="play('tai')">TÀI (11-17)</button>
+        <button class="btn gold" onclick="play('xiu')">XỈU (4-10)</button>
+    </div>
+
+    <div class="result" id="result"></div>
+
 </div>
 
 <div class="nav">
@@ -24,5 +67,68 @@
 </div>
 
 <script src="app.js"></script>
+
+<script>
+function rollDice(){
+    return Math.floor(Math.random()*6)+1;
+}
+
+function play(choice){
+    let bet = parseInt(document.getElementById("betAmount").value);
+
+    if(!bet || bet<=0){
+        alert("Nhập tiền cược");
+        return;
+    }
+
+    if(bet>balance){
+        alert("Không đủ tiền");
+        return;
+    }
+
+    // Animation giả lập
+    let diceDiv = document.getElementById("dice");
+    let count = 0;
+
+    let rolling = setInterval(()=>{
+        diceDiv.innerHTML = 
+        rollDice()+" 🎲 "+
+        rollDice()+" 🎲 "+
+        rollDice();
+        count++;
+        if(count>10){
+            clearInterval(rolling);
+            finishGame(choice, bet);
+        }
+    },100);
+}
+
+function finishGame(choice, bet){
+    let d1 = rollDice();
+    let d2 = rollDice();
+    let d3 = rollDice();
+    let total = d1+d2+d3;
+
+    document.getElementById("dice").innerHTML = d1+" 🎲 "+d2+" 🎲 "+d3;
+
+    let resultType = (total>=11 && total<=17) ? "tai" : "xiu";
+
+    if(choice===resultType){
+        balance += bet;
+        document.getElementById("result").innerHTML =
+        "🎉 Thắng! Tổng: "+total+" +"+bet;
+    }else{
+        balance -= bet;
+        document.getElementById("result").innerHTML =
+        "❌ Thua! Tổng: "+total+" -"+bet;
+    }
+
+    vip = Math.floor(balance/2000000)+1;
+
+    save();
+    updateHeader();
+}
+</script>
+
 </body>
 </html>
