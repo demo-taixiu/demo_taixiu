@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slot 5 Cột</title>
+<title>Slot Mạt Chược</title>
 
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
   font-family:Arial;
-  background:radial-gradient(circle,#500000,#1a0000);
+  background:radial-gradient(circle,#7a0000,#2a0000);
   color:white;
   text-align:center;
 }
@@ -28,34 +28,35 @@ body{
 .grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:5px;
+  gap:6px;
   padding:10px;
   max-width:420px;
   margin:auto;
 }
 .cell{
   aspect-ratio:1/1;
-  background:#222;
-  border:2px solid gold;
-  border-radius:10px;
+  background:#1a1a1a;
+  border:3px solid gold;
+  border-radius:12px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:28px;
+  font-size:24px;
+  box-shadow:0 0 10px #000 inset;
 }
 
 /* CHIP */
 .chips{
   display:flex;
   justify-content:center;
-  flex-wrap:wrap;
   gap:8px;
+  flex-wrap:wrap;
   padding:10px;
 }
 .chip{
   background:gold;
   color:black;
-  padding:6px 12px;
+  padding:6px 14px;
   border-radius:20px;
   font-size:13px;
 }
@@ -69,10 +70,10 @@ body{
   padding:10px;
 }
 button{
-  padding:8px 18px;
+  padding:8px 20px;
+  margin:5px;
   border:none;
   border-radius:20px;
-  margin:5px;
   font-weight:bold;
 }
 .spin{background:gold;color:black;}
@@ -82,46 +83,24 @@ button{
 .win{
   height:25px;
   color:gold;
-}
-
-/* FREE SCREEN */
-.freeScreen{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.95);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  z-index:99;
-}
-.freeBox{
-  background:#300;
-  padding:30px;
-  border:3px solid gold;
-  border-radius:15px;
-}
-.count{
-  font-size:24px;
-  margin:15px 0;
-  color:gold;
+  font-weight:bold;
 }
 </style>
 </head>
 <body>
 
 <div class="top">
-<div>💰 <span id="balance">5,000,000</span></div>
+<div>💰 <span id="balance">10,000,000</span></div>
 <div>FREE: <span id="freeSpin">0</span></div>
 </div>
 
 <div class="grid" id="slot"></div>
 
 <div class="chips">
-<div class="chip active" onclick="setBet(10000,this)">10K</div>
-<div class="chip" onclick="setBet(50000,this)">50K</div>
+<div class="chip active" onclick="setBet(20000,this)">20K</div>
 <div class="chip" onclick="setBet(100000,this)">100K</div>
 <div class="chip" onclick="setBet(500000,this)">500K</div>
+<div class="chip" onclick="setBet(1000000,this)">1M</div>
 </div>
 
 <div class="controls">
@@ -132,19 +111,10 @@ button{
 
 <div class="win" id="winText"></div>
 
-<!-- FREE SCREEN -->
-<div class="freeScreen" id="freeScreen">
-  <div class="freeBox">
-    <h2>🎁 FREE 12 VÒNG</h2>
-    <div class="count" id="countdown">10</div>
-    <button onclick="startFree()">BẮT ĐẦU</button>
-  </div>
-</div>
-
 <script>
-const icons=["🍒","🍋","💎","7️⃣","⭐"];
-let balance=5000000;
-let bet=10000;
+const icons=["🐉","🦅","東","西","中","發","白","⭐"];
+let balance=10000000;
+let bet=20000;
 let freeSpin=0;
 let auto=false;
 let fast=false;
@@ -154,16 +124,13 @@ const slot=document.getElementById("slot");
 const balanceEl=document.getElementById("balance");
 const freeSpinEl=document.getElementById("freeSpin");
 const winText=document.getElementById("winText");
-const freeScreen=document.getElementById("freeScreen");
-const countdownEl=document.getElementById("countdown");
 
-/* tạo grid */
 function createGrid(){
   slot.innerHTML="";
   for(let i=0;i<15;i++){
     let d=document.createElement("div");
     d.className="cell";
-    d.innerText="❓";
+    d.innerText="🀄";
     slot.appendChild(d);
   }
 }
@@ -196,7 +163,7 @@ function spin(){
 
   updateUI();
 
-  let speed=fast?50:100;
+  let speed=fast?60:120;
   let count=0;
 
   let interval=setInterval(()=>{
@@ -213,13 +180,6 @@ function spin(){
 
 function checkWin(){
   let cells=[...document.querySelectorAll(".cell")].map(c=>c.innerText);
-
-  let scatter=cells.filter(x=>x==="⭐").length;
-  if(scatter>=3){
-    showFreeScreen();
-  }
-
-  let win=0;
   let grid=[];
   for(let r=0;r<3;r++){
     grid[r]=[];
@@ -227,6 +187,8 @@ function checkWin(){
       grid[r][c]=cells[r*5+c];
     }
   }
+
+  let win=0;
 
   for(let r=0;r<3;r++){
     let first=grid[r][0];
@@ -238,35 +200,19 @@ function checkWin(){
     if(count>=3) win+=bet*count;
   }
 
+  let scatter=cells.filter(x=>x==="⭐").length;
+  if(scatter>=3){
+    freeSpin+=10;
+    winText.innerText="🎁 FREE 10 VÒNG!";
+  }
+
   if(freeSpin>0) win*=5;
 
   if(win>0){
     balance+=win;
-    winText.innerText="+"+win.toLocaleString();
+    winText.innerText+=" +" + win.toLocaleString();
   }
 
-  updateUI();
-}
-
-/* FREE MODE */
-function showFreeScreen(){
-  freeScreen.style.display="flex";
-  let time=10;
-  countdownEl.innerText=time;
-
-  let cd=setInterval(()=>{
-    time--;
-    countdownEl.innerText=time;
-    if(time<=0){
-      clearInterval(cd);
-      startFree();
-    }
-  },1000);
-}
-
-function startFree(){
-  freeScreen.style.display="none";
-  freeSpin=12;
   updateUI();
 }
 updateUI();
