@@ -11,7 +11,6 @@ body{
     font-family:Arial;
     background: radial-gradient(circle at top,#3a1c71,#0f0c29);
     color:white;
-    overflow-x:hidden;
 }
 
 /* HEADER */
@@ -19,107 +18,87 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:10px 15px;
-    background:rgba(0,0,0,0.4);
-    box-shadow:0 0 15px gold;
+    padding:12px;
+    background:#2b145f;
 }
 
 .logo{
-    font-size:20px;
     font-weight:bold;
     color:gold;
-    animation:glow 2s infinite alternate;
-}
-
-@keyframes glow{
-    from{ text-shadow:0 0 5px gold;}
-    to{ text-shadow:0 0 20px gold;}
+    font-size:18px;
 }
 
 .vip{
     background:gold;
     color:black;
-    padding:5px 12px;
-    border-radius:20px;
+    padding:6px 14px;
+    border-radius:25px;
     font-weight:bold;
 }
 
-/* TOP HŨ */
-.tophu{
-    position:fixed;
-    left:0;
-    top:80px;
-    width:120px;
-    background:rgba(0,0,0,0.6);
+/* WRAPPER */
+.wrapper{
+    display:flex;
+    gap:10px;
     padding:10px;
-    border-radius:0 15px 15px 0;
 }
 
-.tophu h3{
+/* TOP BOXES */
+.side-box{
+    width:120px;
+    background:rgba(0,0,0,0.4);
+    border-radius:15px;
+    padding:10px;
+    font-size:13px;
+}
+
+.side-box h3{
     font-size:14px;
     color:gold;
-    text-align:center;
+    margin-bottom:8px;
 }
 
-.tophu div{
-    font-size:12px;
-    margin:5px 0;
-}
-
-/* GAME GRID */
+/* GAME LIST */
 .games{
-    margin-left:130px;
-    padding:15px;
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
-    gap:15px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
 }
 
 .game-card{
-    background:linear-gradient(180deg,#6a4df3,#2a1c7a);
-    border-radius:15px;
+    background:linear-gradient(180deg,#5c3df0,#2a1c7a);
+    border-radius:20px;
     padding:10px;
     text-align:center;
-    box-shadow:0 0 15px rgba(255,215,0,0.5);
+    box-shadow:0 0 20px rgba(255,215,0,0.4);
     transition:0.3s;
-    cursor:pointer;
-}
-
-.game-card:hover{
-    transform:scale(1.07);
-    box-shadow:0 0 25px gold;
 }
 
 .game-card img{
     width:100%;
-    border-radius:10px;
+    border-radius:15px;
+}
+
+.game-title{
+    margin-top:8px;
+    font-size:18px;
 }
 
 .jackpot{
-    font-size:12px;
     color:gold;
+    font-weight:bold;
 }
 
-/* BẢNG XẾP HẠNG */
-.rank{
-    position:fixed;
-    right:0;
-    top:80px;
-    width:130px;
-    background:rgba(0,0,0,0.6);
-    padding:10px;
-    border-radius:15px 0 0 15px;
-}
+/* MOBILE FIX */
+@media(max-width:768px){
+    .wrapper{
+        flex-direction:column;
+    }
 
-.rank h3{
-    font-size:14px;
-    color:gold;
-    text-align:center;
-}
-
-.rank div{
-    font-size:12px;
-    margin:5px 0;
+    .side-box{
+        width:100%;
+    }
 }
 </style>
 </head>
