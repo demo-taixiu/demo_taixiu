@@ -3,139 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tài Xỉu Bảng Lớn</title>
+<title>Sảnh Game</title>
 <link rel="stylesheet" href="style.css">
-
-<style>
-body{
-    background:linear-gradient(#1e4d2b,#0f2c1a);
-}
-
-/* BÀN GAME */
-.board{
-    padding:10px;
-}
-
-/* DICE DISPLAY */
-.dice-display{
-    text-align:center;
-    font-size:40px;
-    margin:10px 0;
-}
-
-/* GRID */
-.grid{
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    gap:4px;
-}
-
-.cell{
-    border:1px solid rgba(255,255,255,.3);
-    text-align:center;
-    padding:15px 5px;
-    cursor:pointer;
-    background:rgba(0,0,0,.2);
-    font-weight:bold;
-}
-
-.cell small{
-    display:block;
-    font-weight:normal;
-    opacity:.8;
-}
-
-.cell:hover{
-    background:rgba(255,255,255,.1);
-}
-
-.result{
-    text-align:center;
-    margin-top:10px;
-    font-weight:bold;
-}
-</style>
 </head>
-
 <body onload="updateHeader()">
 
 <div class="header">
-    <div class="logo">🎲 TÀI XỈU PRO</div>
+    <div class="logo">TOP HŨ VIP</div>
     <div>
-        💰 <span id="balance"></span><br>
-        VIP <span id="vip"></span>
+        👤 <span id="username"></span><br>
+        <span class="vip">VIP <span id="vip"></span></span>
     </div>
 </div>
 
-<div class="board">
+<div class="banner">
+    <img src="https://picsum.photos/800/300?casino">
+</div>
 
-<div class="dice-display" id="dice">🎲 🎲 🎲</div>
+<div class="wallet">
+    💰 Số dư ví:
+    <div class="balance" id="balance"></div>
+    <button class="btn green" onclick="nap()">Nạp</button>
+    <button class="btn red" onclick="rut()">Rút</button>
+</div>
 
-<input type="number" id="betAmount" 
-placeholder="Nhập tiền cược"
-style="width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px;">
+<div class="games">
+    <div class="game" onclick="location.href='taixiu.html'">
+        <img src="https://picsum.photos/400/300?1">
+        <div class="game-info">Tài Xỉu</div>
+    </div>
+    <div class="game" onclick="playDemo()">
+        <img src="https://picsum.photos/400/300?2">
+        <div class="game-info">Xóc Đĩa</div>
+    </div>
+    <div class="game" onclick="playDemo()">
+        <img src="https://picsum.photos/400/300?3">
+        <div class="game-info">Mini Poker</div>
+    </div>
+    <div class="game" onclick="playDemo()">
+        <img src="https://picsum.photos/400/300?4">
+        <div class="game-info">Bầu Cua</div>
+    </div>
+    <div class="game" onclick="playDemo()">
+        <img src="https://picsum.photos/400/300?5">
+        <div class="game-info">Slot Panda</div>
+    </div>
+</div>
 
-<!-- CƯỢC TỔNG -->
-<div class="grid" id="sumGrid"></div>
-
-<div class="result" id="result"></div>
-
+<div class="nav">
+    <a href="index.html" class="active">🏠<br>Trang chủ</a>
+    <a href="#">💰<br>Hoàn trả</a>
+    <a href="#">🎁<br>Khuyến mãi</a>
+    <a href="#">📞<br>CSKH</a>
+    <a href="account.html">👤<br>Tài khoản</a>
 </div>
 
 <script src="app.js"></script>
-
-<script>
-
-// TỶ LỆ CƯỢC TỔNG
-const odds = {
-4:60,5:30,6:18,7:12,8:8,9:7,10:6,
-11:6,12:7,13:8,14:12,15:18,16:30,17:60
-};
-
-const grid = document.getElementById("sumGrid");
-
-// TẠO Ô 4 → 17
-for(let i=4;i<=17;i++){
-    let div = document.createElement("div");
-    div.className="cell";
-    div.innerHTML=i+"<small>"+odds[i]+":1</small>";
-    div.onclick=()=>play(i);
-    grid.appendChild(div);
-}
-
-function roll(){
-    return Math.floor(Math.random()*6)+1;
-}
-
-function play(target){
-    let bet=parseInt(document.getElementById("betAmount").value);
-    if(!bet||bet<=0) return alert("Nhập tiền cược");
-    if(bet>balance) return alert("Không đủ tiền");
-
-    let d1=roll(), d2=roll(), d3=roll();
-    let total=d1+d2+d3;
-
-    document.getElementById("dice").innerHTML=
-    d1+" 🎲 "+d2+" 🎲 "+d3;
-
-    if(total==target){
-        let win=bet*odds[target];
-        balance+=win;
-        document.getElementById("result").innerHTML=
-        "🎉 Trúng "+total+" +"+win;
-    }else{
-        balance-=bet;
-        document.getElementById("result").innerHTML=
-        "❌ Ra "+total+" -"+bet;
-    }
-
-    vip=Math.floor(balance/2000000)+1;
-
-    save();
-    updateHeader();
-}
-
-</script>
-
 </body>
 </html>
