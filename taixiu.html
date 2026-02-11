@@ -3,142 +3,168 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tài Xỉu Casino</title>
-<link rel="stylesheet" href="style.css">
+<title>Tài Xỉu Casino Pro</title>
 
 <style>
 body{
-    background:radial-gradient(circle,#1f5a34,#0d2517);
-    color:#fff;
+    margin:0;
     font-family:Arial;
+    background:radial-gradient(circle,#1e4d2b,#0c1f13);
+    color:white;
+    overflow-x:hidden;
+}
+
+/* HEADER */
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    background:#111;
+    font-size:14px;
+}
+
+/* ONLINE */
+.online{
+    text-align:center;
+    font-size:13px;
 }
 
 /* TIMER */
 .timer{
     text-align:center;
+    font-size:24px;
+    font-weight:bold;
+}
+.timer.red{color:red}
+
+/* BOARD */
+.board{
+    display:flex;
+    justify-content:space-around;
+    margin-top:10px;
+}
+
+.side{
+    width:45%;
+    padding:20px;
+    text-align:center;
+    border-radius:15px;
     font-size:22px;
     font-weight:bold;
-    margin:5px 0;
+    cursor:pointer;
 }
-.timer.red{
-    color:red;
+
+.tai{background:#b30000;}
+.xiu{background:#0033cc;}
+
+.side.active{
+    box-shadow:0 0 20px gold;
+}
+
+/* DICE 3D */
+.dice-area{
+    text-align:center;
+    margin:20px 0;
+    perspective:600px;
+}
+.dice{
+    display:inline-block;
+    font-size:50px;
+    margin:0 10px;
+    transition:transform 1s;
 }
 
 /* CHIP */
 .chips{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:#111;
     display:flex;
-    flex-wrap:wrap;
-    gap:8px;
     justify-content:center;
-    margin:10px 0;
+    flex-wrap:wrap;
+    padding:10px;
+    gap:8px;
 }
 .chip{
+    background:gold;
+    color:black;
     padding:8px 12px;
     border-radius:50px;
-    background:gold;
-    color:#000;
     font-weight:bold;
     cursor:pointer;
 }
-.chip.active{
-    background:red;
-    color:#fff;
-}
+.chip.active{background:red;color:white}
 
-/* GRID */
-.grid{
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    gap:4px;
-}
-.cell{
-    border:1px solid rgba(255,255,255,.3);
-    padding:12px 5px;
-    text-align:center;
-    cursor:pointer;
-    background:rgba(0,0,0,.3);
-}
-.cell.active{
-    background:gold;
+/* EFFECT 60:1 */
+.win60{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(255,215,0,0.7);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:40px;
+    font-weight:bold;
     color:#000;
+    animation:flash 0.3s infinite alternate;
 }
-
-/* DICE */
-.dice{
-    text-align:center;
-    font-size:45px;
-    margin:10px 0;
-}
-
-/* HISTORY */
-.history{
-    text-align:center;
-    margin-top:10px;
+@keyframes flash{
+    from{opacity:0.7;}
+    to{opacity:1;}
 }
 </style>
 </head>
+<body>
 
-<body onload="initGame()">
-
-<div class="header">
-    💰 <span id="balance"></span>
+<div class="topbar">
+<div>💰 Số dư: <span id="balance">10000000</span></div>
+<div>💰 Tổng bàn: <span id="totalTable">0</span></div>
 </div>
 
-<div class="timer" id="timer">⏳ 30</div>
+<div class="online" id="onlineBox"></div>
 
-<div class="dice" id="dice">🎲 🎲 🎲</div>
+<div class="timer" id="timer">30</div>
+
+<div class="board">
+<div class="side tai" onclick="selectSide('tai',this)">TÀI (11-17)</div>
+<div class="side xiu" onclick="selectSide('xiu',this)">XỈU (4-10)</div>
+</div>
+
+<div class="dice-area">
+<span class="dice" id="d1">🎲</span>
+<span class="dice" id="d2">🎲</span>
+<span class="dice" id="d3">🎲</span>
+</div>
 
 <!-- CHIP -->
 <div class="chips" id="chips"></div>
 
-<div style="text-align:center">
-Tổng cược: <span id="currentBet">0</span>
-</div>
-
-<!-- BÀN -->
-<div class="grid" id="sumGrid"></div>
-
-<div class="history">
-📊 Cầu: <span id="stats"></span>
-</div>
-
-<script src="app.js"></script>
-
 <script>
 
-let time=30;
-let lockBet=false;
+let balance=10000000;
 let selected=null;
 let currentChip=0;
-let currentBet=0;
-let statsList=JSON.parse(localStorage.getItem("statsList"))||[];
+let totalBet=0;
+let time=30;
+let lockBet=false;
+let stats=JSON.parse(localStorage.getItem("stats"))||[];
 
-// ===== INIT =====
-function initGame(){
-    updateHeader();
-    createChips();
-    createBoard();
-    updateStats();
-    startTimer();
-}
-
-// ===== CHIP =====
 const chipValues=[5000,10000,50000,200000,500000,1000000,5000000,10000000,100000000];
 
-function createChips(){
-    const box=document.getElementById("chips");
-    chipValues.forEach(val=>{
-        let div=document.createElement("div");
-        div.className="chip";
-        div.innerText=format(val);
-        div.onclick=()=>{
-            document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-            div.classList.add("active");
-            currentChip=val;
-        };
-        box.appendChild(div);
-    });
-}
+// ===== CHIP =====
+chipValues.forEach(val=>{
+    let c=document.createElement("div");
+    c.className="chip";
+    c.innerText=format(val);
+    c.onclick=()=>{
+        document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+        c.classList.add("active");
+        currentChip=val;
+    }
+    document.getElementById("chips").appendChild(c);
+});
 
 function format(n){
     if(n>=1000000) return (n/1000000)+"TR";
@@ -146,60 +172,42 @@ function format(n){
     return n;
 }
 
-// ===== BOARD =====
-const oddsSum={
-4:60,5:30,6:18,7:12,8:8,9:7,10:6,
-11:6,12:7,13:8,14:12,15:18,16:30,17:60
-};
-
-function createBoard(){
-    const grid=document.getElementById("sumGrid");
-    for(let i=4;i<=17;i++){
-        let div=document.createElement("div");
-        div.className="cell";
-        div.innerHTML=i+"<br>"+oddsSum[i]+":1";
-        div.onclick=()=>placeBet(i,div);
-        grid.appendChild(div);
-    }
-}
-
-function placeBet(num,el){
+// ===== CHỌN TÀI/XỈU =====
+function selectSide(side,el){
     if(lockBet) return alert("Đã khóa cược!");
     if(!currentChip) return alert("Chọn chip!");
 
-    selected=num;
-    currentBet+=currentChip;
-
-    document.getElementById("currentBet").innerText=
-    currentBet.toLocaleString();
-
+    document.querySelectorAll(".side").forEach(s=>s.classList.remove("active"));
     el.classList.add("active");
+
+    selected=side;
+    totalBet+=currentChip;
+
+    document.getElementById("totalTable").innerText=
+    (parseInt(document.getElementById("totalTable").innerText)+currentChip).toLocaleString();
 }
 
 // ===== TIMER =====
-function startTimer(){
-    setInterval(()=>{
-        time--;
+setInterval(()=>{
+    time--;
+    if(time<=5){
+        lockBet=true;
+        document.getElementById("timer").classList.add("red");
+    }else{
+        document.getElementById("timer").classList.remove("red");
+    }
 
-        if(time<=5){
-            lockBet=true;
-            document.getElementById("timer").classList.add("red");
-        }else{
-            document.getElementById("timer").classList.remove("red");
-        }
+    if(time<=0){
+        runGame();
+        time=30;
+        lockBet=false;
+        totalBet=0;
+        document.getElementById("totalTable").innerText="0";
+        document.querySelectorAll(".side").forEach(s=>s.classList.remove("active"));
+    }
 
-        if(time<=0){
-            runGame();
-            time=30;
-            lockBet=false;
-            currentBet=0;
-            document.getElementById("currentBet").innerText=0;
-            document.querySelectorAll(".cell").forEach(c=>c.classList.remove("active"));
-        }
-
-        document.getElementById("timer").innerText="⏳ "+time;
-    },1000);
-}
+    document.getElementById("timer").innerText=time;
+},1000);
 
 // ===== GAME =====
 function roll(){return Math.floor(Math.random()*6)+1;}
@@ -208,51 +216,70 @@ function runGame(){
     let d1=roll(),d2=roll(),d3=roll();
     let total=d1+d2+d3;
 
-    document.getElementById("dice").innerHTML=
-    d1+" 🎲 "+d2+" 🎲 "+d3;
+    animateDice(d1,d2,d3);
 
-    if(selected && total==selected){
-        let win=currentBet*oddsSum[selected];
-        balance+=win;
-        playWin();
+    let win=false;
+
+    if(selected=="tai" && total>=11) win=true;
+    if(selected=="xiu" && total<=10) win=true;
+
+    if(win){
+        let payout=totalBet*1;
+        balance+=payout;
+        playWinSound();
+
+        if(total==4||total==17){
+            showWin60();
+        }
     }else{
-        balance-=currentBet;
+        balance-=totalBet;
     }
 
-    vip=Math.floor(balance/2000000)+1;
-    save();
-    updateHeader();
+    document.getElementById("balance").innerText=balance.toLocaleString();
 
-    // LƯU CẦU
-    statsList.unshift(total>=11?"T":"X");
-    if(statsList.length>50) statsList.pop();
-    localStorage.setItem("statsList",JSON.stringify(statsList));
-    updateStats();
-
-    selected=null;
+    stats.unshift(total>=11?"T":"X");
+    localStorage.setItem("stats",JSON.stringify(stats));
 }
 
-// ===== FAKE NGƯỜI CHƠI =====
+// ===== 3D DICE =====
+function animateDice(a,b,c){
+    document.getElementById("d1").innerText=a;
+    document.getElementById("d2").innerText=b;
+    document.getElementById("d3").innerText=c;
+
+    document.querySelectorAll(".dice").forEach(d=>{
+        d.style.transform="rotateX(360deg) rotateY(360deg)";
+        setTimeout(()=>{d.style.transform="rotateX(0deg)"},1000);
+    });
+}
+
+// ===== EFFECT 60:1 =====
+function showWin60(){
+    let div=document.createElement("div");
+    div.className="win60";
+    div.innerText="💥 JACKPOT 60:1 💥";
+    document.body.appendChild(div);
+    setTimeout(()=>div.remove(),2000);
+}
+
+// ===== ONLINE 500 FAKE =====
 setInterval(()=>{
-    let names=["Minh","Huy","An","Long","Khoa","Tuấn"];
-    let randomName=names[Math.floor(Math.random()*names.length)];
-    let randomMoney=Math.floor(Math.random()*5000000);
-    console.log(randomName+" cược "+randomMoney);
+    let count=450+Math.floor(Math.random()*50);
+    document.getElementById("onlineBox").innerHTML=
+    "👥 "+count+" người online";
 },2000);
 
-// ===== STATS =====
-function updateStats(){
-    document.getElementById("stats").innerText=
-    statsList.join(" ");
-}
-
 // ===== SOUND =====
-function playWin(){
+let bgMusic=new Audio("https://actions.google.com/sounds/v1/ambiences/casino.ogg");
+bgMusic.loop=true;
+bgMusic.volume=0.3;
+document.body.onclick=()=>bgMusic.play();
+
+function playWinSound(){
     let audio=new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
     audio.play();
 }
 
 </script>
-
 </body>
 </html>
