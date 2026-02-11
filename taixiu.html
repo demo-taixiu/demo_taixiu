@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sicbo Pro Casino</title>
+<title>Sicbo Pro</title>
 
 <style>
 body{
@@ -22,61 +22,51 @@ body{
   font-size:14px;
 }
 
-/* DICE 3D */
-.scene{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  perspective:800px;
+/* DICE */
+.dice-area{
+  text-align:center;
+  font-size:40px;
   margin:15px 0;
 }
-
-.cube{
-  width:60px;height:60px;
-  position:relative;
-  transform-style:preserve-3d;
-  transition:1.2s;
-}
-
-.cube div{
-  position:absolute;
-  width:60px;height:60px;
-  background:#fff;
-  border:2px solid #000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
-  font-weight:bold;
-}
-
-.front{transform:rotateY(0deg) translateZ(30px);}
-.back{transform:rotateY(180deg) translateZ(30px);}
-.right{transform:rotateY(90deg) translateZ(30px);}
-.left{transform:rotateY(-90deg) translateZ(30px);}
-.top{transform:rotateX(90deg) translateZ(30px);}
-.bottom{transform:rotateX(-90deg) translateZ(30px);}
 
 /* BOARD */
 .board{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:2px;
+  gap:3px;
   padding:5px;
 }
 
 .cell{
+  position:relative;
   background:rgba(255,255,255,0.08);
   border:1px solid rgba(255,255,255,0.2);
   text-align:center;
-  padding:10px 5px;
+  padding:12px 5px;
   font-size:14px;
   cursor:pointer;
 }
 
 .cell:hover{background:rgba(255,255,255,0.2);}
 
-/* CHIP */
+/* CHIP NỔI */
+.chip-bet{
+  position:absolute;
+  bottom:5px;
+  right:5px;
+  background:gold;
+  color:black;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:bold;
+}
+
+/* CHIP SELECT */
 .chips{
   position:fixed;
   bottom:0;
@@ -84,7 +74,6 @@ body{
   background:#111;
   display:flex;
   justify-content:center;
-  flex-wrap:wrap;
   gap:6px;
   padding:8px;
 }
@@ -97,7 +86,6 @@ body{
   font-weight:bold;
   cursor:pointer;
 }
-
 .chip.active{background:red;color:white}
 
 /* JACKPOT */
@@ -113,7 +101,6 @@ body{
   font-weight:bold;
   color:black;
   animation:flash 0.3s infinite alternate;
-  z-index:999;
 }
 @keyframes flash{
   from{opacity:0.7}
@@ -124,28 +111,31 @@ body{
 <body>
 
 <div class="topbar">
-<div>💰 Số dư: <span id="balance">10000000</span></div>
+<div>💰 Số dư: <span id="balance">5000000</span></div>
 <div>⏳ <span id="timer">20</span></div>
 </div>
 
-<!-- DICE -->
-<div class="scene">
-  <div class="cube" id="cube1"></div>
-  <div class="cube" id="cube2"></div>
-  <div class="cube" id="cube3"></div>
-</div>
+<div class="dice-area" id="dice">🎲 🎲 🎲</div>
 
-<!-- BOARD -->
 <div class="board" id="board"></div>
 
-<!-- CHIP -->
 <div class="chips" id="chips"></div>
 
 <script>
-let balance=10000000;
+let balance=5000000;
 let chipValue=0;
 let time=20;
 let bets={};
+
+const payout={
+  tai:1,
+  xiu:1,
+  bao:150,
+  total:{
+    4:60,5:30,6:18,7:12,8:8,9:7,10:6,
+    11:6,12:7,13:8,14:12,15:18,16:30,17:60
+  }
+};
 
 const chipList=[5000,10000,50000,200000,500000,1000000];
 
@@ -161,19 +151,55 @@ chipList.forEach(val=>{
   document.getElementById("chips").appendChild(c);
 });
 
-/* CREATE BOARD 4→17 */
-for(let i=4;i<=17;i++){
+/* TẠO BOARD */
+
+/* TÀI XỈU */
+["TÀI 1:1","XỈU 1:1"].forEach(type=>{
   let cell=document.createElement("div");
   cell.className="cell";
-  cell.innerHTML=i+"<br>";
-  cell.onclick=()=>placeBet(i);
+  cell.innerHTML=type;
+  cell.onclick=()=>placeBet(type);
+  document.getElementById("board").appendChild(cell);
+});
+
+/* BÃO 1→6 */
+for(let i=1;i<=6;i++){
+  let cell=document.createElement("div");
+  cell.className="cell";
+  cell.innerHTML="BÃO "+i+"<br>150:1";
+  cell.onclick=()=>placeBet("bao"+i);
   document.getElementById("board").appendChild(cell);
 }
 
-function placeBet(num){
+/* TỔNG 4→17 */
+for(let i=4;i<=17;i++){
+  let cell=document.createElement("div");
+  cell.className="cell";
+  cell.innerHTML=i+"<br>"+payout.total[i]+":1";
+  cell.onclick=()=>placeBet("total"+i);
+  document.getElementById("board").appendChild(cell);
+}
+
+/* ĐẶT CƯỢC */
+function placeBet(type){
   if(!chipValue) return;
-  bets[num]=(bets[num]||0)+chipValue;
+
+  bets[type]=(bets[type]||0)+chipValue;
   balance-=chipValue;
+
+  updateBalance();
+
+  let cell=[...document.querySelectorAll(".cell")]
+    .find(c=>c.innerText.includes(type.replace("total","").replace("bao","BÃO ")));
+
+  let chip=document.createElement("div");
+  chip.className="chip-bet";
+  chip.innerText=(bets[type]/1000)+"K";
+  cell.querySelector(".chip-bet")?.remove();
+  cell.appendChild(chip);
+}
+
+function updateBalance(){
   document.getElementById("balance").innerText=balance.toLocaleString();
 }
 
@@ -187,35 +213,6 @@ setInterval(()=>{
   }
 },1000);
 
-/* DICE */
-function createCube(id){
-  let cube=document.getElementById(id);
-  cube.innerHTML=`
-    <div class="front">1</div>
-    <div class="back">6</div>
-    <div class="right">3</div>
-    <div class="left">4</div>
-    <div class="top">5</div>
-    <div class="bottom">2</div>
-  `;
-}
-createCube("cube1");
-createCube("cube2");
-createCube("cube3");
-
-function rotateCube(cube,value){
-  let r="";
-  switch(value){
-    case 1:r="rotateX(0deg) rotateY(0deg)";break;
-    case 2:r="rotateX(90deg)";break;
-    case 3:r="rotateY(-90deg)";break;
-    case 4:r="rotateY(90deg)";break;
-    case 5:r="rotateX(-90deg)";break;
-    case 6:r="rotateY(180deg)";break;
-  }
-  cube.style.transform=r;
-}
-
 /* GAME */
 function roll(){return Math.floor(Math.random()*6)+1;}
 
@@ -223,25 +220,39 @@ function runGame(){
   let a=roll(),b=roll(),c=roll();
   let total=a+b+c;
 
-  rotateCube(cube1,a);
-  rotateCube(cube2,b);
-  rotateCube(cube3,c);
+  document.getElementById("dice").innerText=a+" "+b+" "+c;
 
-  if(bets[total]){
-    let payout=bets[total]*10; // demo 10:1
-    balance+=payout;
+  /* TAM HOA */
+  if(a===b&&b===c){
+    if(bets["bao"+a]){
+      balance+=bets["bao"+a]*payout.bao;
+    }
+    showJackpot();
   }
 
-  if(a===b&&b===c){
-    let j=document.createElement("div");
-    j.className="jackpot";
-    j.innerText="💥 TAM HOA JACKPOT 💥";
-    document.body.appendChild(j);
-    setTimeout(()=>j.remove(),2000);
+  /* TÀI XỈU */
+  if(total>=11 && total<=17){
+    if(bets["TÀI 1:1"]) balance+=bets["TÀI 1:1"]*2;
+  }else{
+    if(bets["XỈU 1:1"]) balance+=bets["XỈU 1:1"]*2;
+  }
+
+  /* TỔNG */
+  if(bets["total"+total]){
+    balance+=bets["total"+total]*(payout.total[total]+1);
   }
 
   bets={};
-  document.getElementById("balance").innerText=balance.toLocaleString();
+  document.querySelectorAll(".chip-bet").forEach(c=>c.remove());
+  updateBalance();
+}
+
+function showJackpot(){
+  let j=document.createElement("div");
+  j.className="jackpot";
+  j.innerText="💥 TAM HOA 💥";
+  document.body.appendChild(j);
+  setTimeout(()=>j.remove(),2000);
 }
 </script>
 
