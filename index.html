@@ -3,295 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOP HŨ VIP</title>
-
-<style>
-*{box-sizing:border-box}
-body{
-    margin:0;
-    font-family:-apple-system, BlinkMacSystemFont, Arial;
-    background:linear-gradient(180deg,#2b155f,#120a2e);
-    color:#fff;
-}
-
-/* ===== HEADER ===== */
-.header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px;
-    background:#2a1155;
-    box-shadow:0 0 15px gold;
-}
-.logo{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    font-weight:bold;
-    color:gold;
-}
-.logo img{
-    width:32px;height:32px;border-radius:8px;
-}
-.user-box{
-    text-align:right;
-    font-size:13px;
-}
-.vip{
-    background:gold;
-    color:#000;
-    padding:4px 10px;
-    border-radius:20px;
-    font-weight:bold;
-    display:inline-block;
-    margin-top:3px;
-}
-
-/* ===== BANNER ===== */
-.banner{
-    margin:12px;
-    border-radius:16px;
-    overflow:hidden;
-    box-shadow:0 0 20px rgba(255,215,0,.5);
-}
-.banner img{
-    width:100%;
-    display:block;
-}
-
-/* ===== WALLET ===== */
-.wallet{
-    margin:12px;
-    background:rgba(0,0,0,.4);
-    border-radius:16px;
-    padding:12px;
-}
-.wallet-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-.balance{
-    font-size:20px;
-    color:gold;
-    font-weight:bold;
-}
-.wallet button{
-    border:none;
-    border-radius:20px;
-    padding:8px 14px;
-    font-weight:bold;
-    margin-left:6px;
-}
-.btn-nap{background:#00e676;}
-.btn-rut{background:#ff5252;color:#fff;}
-
-/* ===== GAME GRID ===== */
-.games{
-    padding:12px;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-}
-.game{
-    position:relative;
-    border-radius:18px;
-    overflow:hidden;
-    box-shadow:0 0 15px rgba(255,215,0,.4);
-}
-.game img{
-    width:100%;
-    height:140px;
-    object-fit:cover;
-}
-.game-info{
-    position:absolute;
-    bottom:0;left:0;right:0;
-    padding:8px;
-    background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
-}
-.game-title{
-    font-weight:bold;
-}
-.game-jp{
-    color:gold;
-    font-size:13px;
-}
-
-/* ===== BOTTOM NAV ===== */
-.nav{
-    position:fixed;
-    bottom:0;left:0;right:0;
-    background:#1b0f3d;
-    display:flex;
-    justify-content:space-around;
-    padding:8px 0;
-}
-.nav div{
-    text-align:center;
-    font-size:12px;
-    color:#ddd;
-}
-.nav div.active{color:gold}
-
-/* ===== MODAL ===== */
-.modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.6);
-    display:none;
-    align-items:center;
-    justify-content:center;
-}
-.modal-box{
-    background:#2a1155;
-    padding:20px;
-    border-radius:16px;
-    width:80%;
-    max-width:320px;
-}
-.modal-box h3{margin-top:0;color:gold}
-.modal-box input{
-    width:100%;
-    padding:10px;
-    border-radius:10px;
-    border:none;
-    margin-bottom:10px;
-}
-.modal-box button{
-    width:100%;
-    padding:10px;
-    border:none;
-    border-radius:20px;
-    background:gold;
-    font-weight:bold;
-}
-</style>
+<title>Sảnh Game</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body onload="updateHeader()">
 
-<!-- HEADER -->
 <div class="header">
-    <div class="logo">
-        <img src="https://i.imgur.com/7QZ4F5K.png">
-        TOP HŨ VIP
-    </div>
-    <div class="user-box">
-        👤 <span id="username">UserDemo</span><br>
-        <span class="vip">VIP <span id="vip">1</span></span>
+    <div class="logo">TOP HŨ VIP</div>
+    <div>
+        👤 <span id="username"></span><br>
+        <span class="vip">VIP <span id="vip"></span></span>
     </div>
 </div>
 
-<!-- BANNER -->
 <div class="banner">
     <img src="https://picsum.photos/800/300?casino">
 </div>
 
-<!-- WALLET -->
 <div class="wallet">
-    <div class="wallet-row">
-        <div>
-            💰 Số dư ví<br>
-            <span class="balance" id="balance">1,000,000</span>
-        </div>
-        <div>
-            <button class="btn-nap" onclick="openModal('nap')">Nạp</button>
-            <button class="btn-rut" onclick="openModal('rut')">Rút</button>
-        </div>
-    </div>
+    💰 Số dư ví:
+    <div class="balance" id="balance"></div>
+    <button class="btn green" onclick="nap()">Nạp</button>
+    <button class="btn red" onclick="rut()">Rút</button>
 </div>
 
-<!-- GAMES -->
 <div class="games">
-    <div class="game" onclick="playGame()">
+    <div class="game" onclick="location.href='taixiu.html'">
         <img src="https://picsum.photos/400/300?1">
-        <div class="game-info">
-            <div class="game-title">Tài Xỉu</div>
-            <div class="game-jp">Hũ: 2,500,000</div>
-        </div>
+        <div class="game-info">Tài Xỉu</div>
     </div>
-    <div class="game" onclick="playGame()">
+    <div class="game" onclick="playDemo()">
         <img src="https://picsum.photos/400/300?2">
-        <div class="game-info">
-            <div class="game-title">Xóc Đĩa</div>
-            <div class="game-jp">Hũ: 1,800,000</div>
-        </div>
+        <div class="game-info">Xóc Đĩa</div>
     </div>
-    <div class="game" onclick="playGame()">
+    <div class="game" onclick="playDemo()">
         <img src="https://picsum.photos/400/300?3">
-        <div class="game-info">
-            <div class="game-title">Mini Poker</div>
-            <div class="game-jp">Hũ: 3,200,000</div>
-        </div>
+        <div class="game-info">Mini Poker</div>
     </div>
-    <div class="game" onclick="playGame()">
+    <div class="game" onclick="playDemo()">
         <img src="https://picsum.photos/400/300?4">
-        <div class="game-info">
-            <div class="game-title">Bầu Cua</div>
-            <div class="game-jp">Hũ: 2,100,000</div>
-        </div>
+        <div class="game-info">Bầu Cua</div>
     </div>
-    <div class="game" onclick="playGame()">
+    <div class="game" onclick="playDemo()">
         <img src="https://picsum.photos/400/300?5">
-        <div class="game-info">
-            <div class="game-title">Slot Panda</div>
-            <div class="game-jp">Hũ: 5,000,000</div>
-        </div>
+        <div class="game-info">Slot Panda</div>
     </div>
 </div>
 
-<!-- NAV -->
 <div class="nav">
-    <div class="active">🏠<br>Trang chủ</div>
-    <div>💰<br>Hoàn trả</div>
-    <div>🎁<br>Khuyến mãi</div>
-    <div>📞<br>CSKH</div>
-    <div>👤<br>Tài khoản</div>
+    <a href="index.html" class="active">🏠<br>Trang chủ</a>
+    <a href="#">💰<br>Hoàn trả</a>
+    <a href="#">🎁<br>Khuyến mãi</a>
+    <a href="#">📞<br>CSKH</a>
+    <a href="account.html">👤<br>Tài khoản</a>
 </div>
 
-<!-- MODAL -->
-<div class="modal" id="modal">
-    <div class="modal-box">
-        <h3 id="modalTitle"></h3>
-        <input type="number" id="amount" placeholder="Nhập số tiền">
-        <button onclick="submitAmount()">Xác nhận</button>
-    </div>
-</div>
-
-<script>
-let balance = parseInt(localStorage.balance||1000000);
-let vip = parseInt(localStorage.vip||1);
-let action = "";
-
-function updateUI(){
-    document.getElementById("balance").innerText = balance.toLocaleString();
-    document.getElementById("vip").innerText = vip;
-    localStorage.balance = balance;
-    localStorage.vip = vip;
-}
-updateUI();
-
-function openModal(type){
-    action = type;
-    document.getElementById("modalTitle").innerText = type==="nap"?"💰 Nạp tiền":"🏧 Rút tiền";
-    document.getElementById("modal").style.display="flex";
-}
-
-function submitAmount(){
-    let amt = parseInt(document.getElementById("amount").value||0);
-    if(amt<=0) return;
-    if(action==="nap") balance+=amt;
-    if(action==="rut" && balance>=amt) balance-=amt;
-    vip = Math.floor(balance/2000000)+1;
-    document.getElementById("modal").style.display="none";
-    document.getElementById("amount").value="";
-    updateUI();
-}
-
-function playGame(){
-    alert("🎮 Demo game – chưa kết nối server");
-}
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
