@@ -143,6 +143,61 @@ body{
     cursor:pointer;
 }
 .chip.active{background:red;color:white}
+.scene{
+  display:flex;
+  justify-content:center;
+  gap:25px;
+  perspective:800px;
+}
+
+.cube{
+  width:60px;
+  height:60px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:1.2s cubic-bezier(.17,.67,.83,.67);
+}
+
+.cube div{
+  position:absolute;
+  width:60px;
+  height:60px;
+  background:white;
+  border:2px solid #000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:20px;
+  font-weight:bold;
+}
+
+/* 6 mặt */
+.front{transform:rotateY(0deg) translateZ(30px);}
+.back{transform:rotateY(180deg) translateZ(30px);}
+.right{transform:rotateY(90deg) translateZ(30px);}
+.left{transform:rotateY(-90deg) translateZ(30px);}
+.top{transform:rotateX(90deg) translateZ(30px);}
+.bottom{transform:rotateX(-90deg) translateZ(30px);}
+
+/* TAM HOA EFFECT */
+.jackpot{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:radial-gradient(circle,gold,orange,black);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:40px;
+  font-weight:bold;
+  color:#000;
+  animation:flash 0.3s infinite alternate;
+  z-index:999;
+}
+@keyframes flash{
+  from{opacity:0.7}
+  to{opacity:1}
+}
 </style>
 </head>
 <body>
@@ -164,9 +219,11 @@ body{
 </div>
 
 <div class="dice-area">
-<span class="dice" id="d1">🎲</span>
-<span class="dice" id="d2">🎲</span>
-<span class="dice" id="d3">🎲</span>
+  <div class="scene">
+    <div class="cube" id="cube1"></div>
+    <div class="cube" id="cube2"></div>
+    <div class="cube" id="cube3"></div>
+  </div>
 </div>
 
 <div class="roadmap" id="roadmap"></div>
@@ -253,16 +310,25 @@ function animateDice(a,b,c){
     });
 }
 
-function updateRoadmap(){
-    let map=document.getElementById("roadmap");
-    map.innerHTML="";
-    roadData.forEach(r=>{
-        let dot=document.createElement("div");
-        dot.className="dot "+(r=="T"?"redDot":"blueDot");
-        map.appendChild(dot);
-    });
+function updateBigRoad(){
+  let map=document.getElementById("roadmap");
+  map.innerHTML="";
+  let col=0,row=0;
+  let last=null;
+
+  roadData.forEach(r=>{
+    if(r!==last){row=0;col++;}
+    else{row++;}
+
+    let dot=document.createElement("div");
+    dot.className="dot "+(r=="T"?"redDot":"blueDot");
+    dot.style.gridColumn=col;
+    dot.style.gridRow=row+1;
+    map.appendChild(dot);
+
+    last=r;
+  });
 }
-updateRoadmap();
 
 /* FAKE ONLINE */
 setInterval(()=>{
@@ -287,6 +353,33 @@ setInterval(()=>{
     avatar+" cược "+money.toLocaleString()+"<br>"+document.getElementById("fakeList").innerHTML;
 },2000);
 
+function createCube(id){
+  let cube=document.getElementById(id);
+  cube.innerHTML=`
+    <div class="front">1</div>
+    <div class="back">6</div>
+    <div class="right">3</div>
+    <div class="left">4</div>
+    <div class="top">5</div>
+    <div class="bottom">2</div>
+  `;
+}
+createCube("cube1");
+createCube("cube2");
+createCube("cube3");
+
+function rotateCube(cube,value){
+  let rotate="";
+  switch(value){
+    case 1: rotate="rotateX(0deg) rotateY(0deg)"; break;
+    case 2: rotate="rotateX(90deg)"; break;
+    case 3: rotate="rotateY(-90deg)"; break;
+    case 4: rotate="rotateY(90deg)"; break;
+    case 5: rotate="rotateX(-90deg)"; break;
+    case 6: rotate="rotateY(180deg)"; break;
+  }
+  cube.style.transform=rotate;
+}
 </script>
 </body>
 </html>
