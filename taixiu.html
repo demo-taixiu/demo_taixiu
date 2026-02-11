@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tài Xỉu Casino Pro</title>
+<title>Tài Xỉu Casino Room</title>
 
 <style>
 body{
@@ -11,7 +11,6 @@ body{
     font-family:Arial;
     background:radial-gradient(circle,#1e4d2b,#0c1f13);
     color:white;
-    overflow-x:hidden;
 }
 
 /* HEADER */
@@ -23,16 +22,28 @@ body{
     font-size:14px;
 }
 
-/* ONLINE */
-.online{
-    text-align:center;
-    font-size:13px;
+/* MARQUEE */
+.marquee{
+    background:#000;
+    color:gold;
+    padding:5px;
+    overflow:hidden;
+    white-space:nowrap;
+}
+.marquee span{
+    display:inline-block;
+    padding-left:100%;
+    animation:mar 12s linear infinite;
+}
+@keyframes mar{
+    from{transform:translateX(0)}
+    to{transform:translateX(-100%)}
 }
 
 /* TIMER */
 .timer{
     text-align:center;
-    font-size:24px;
+    font-size:22px;
     font-weight:bold;
 }
 .timer.red{color:red}
@@ -52,26 +63,63 @@ body{
     font-size:22px;
     font-weight:bold;
     cursor:pointer;
+    position:relative;
 }
 
 .tai{background:#b30000;}
 .xiu{background:#0033cc;}
 
 .side.active{
-    box-shadow:0 0 20px gold;
+    box-shadow:0 0 15px gold;
 }
 
-/* DICE 3D */
-.dice-area{
-    text-align:center;
-    margin:20px 0;
-    perspective:600px;
+/* GOLD BORDER EFFECT */
+.side::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:15px;
+    border:3px solid gold;
+    opacity:0;
+    animation:glow 2s linear infinite;
 }
-.dice{
-    display:inline-block;
-    font-size:50px;
-    margin:0 10px;
-    transition:transform 1s;
+.side.active::after{opacity:1;}
+
+@keyframes glow{
+    0%{box-shadow:0 0 5px gold}
+    50%{box-shadow:0 0 20px gold}
+    100%{box-shadow:0 0 5px gold}
+}
+
+/* DICE */
+.dice-area{text-align:center;margin:20px 0}
+.dice{font-size:50px;margin:0 10px;transition:1s}
+
+/* ROADMAP */
+.roadmap{
+    display:grid;
+    grid-template-rows:repeat(6,18px);
+    grid-auto-flow:column;
+    gap:2px;
+    margin:10px;
+}
+.dot{
+    width:18px;
+    height:18px;
+    border-radius:50%;
+}
+.redDot{background:red}
+.blueDot{background:blue}
+
+/* ONLINE */
+.online{font-size:13px;text-align:center}
+
+/* FAKE BET LIST */
+.fakeList{
+    max-height:80px;
+    overflow:hidden;
+    font-size:12px;
+    padding:5px;
 }
 
 /* CHIP */
@@ -83,53 +131,36 @@ body{
     display:flex;
     justify-content:center;
     flex-wrap:wrap;
-    padding:10px;
-    gap:8px;
+    padding:8px;
+    gap:6px;
 }
 .chip{
     background:gold;
     color:black;
-    padding:8px 12px;
+    padding:6px 10px;
     border-radius:50px;
     font-weight:bold;
     cursor:pointer;
 }
 .chip.active{background:red;color:white}
-
-/* EFFECT 60:1 */
-.win60{
-    position:fixed;
-    top:0;left:0;
-    width:100%;height:100%;
-    background:rgba(255,215,0,0.7);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:40px;
-    font-weight:bold;
-    color:#000;
-    animation:flash 0.3s infinite alternate;
-}
-@keyframes flash{
-    from{opacity:0.7;}
-    to{opacity:1;}
-}
 </style>
 </head>
 <body>
 
 <div class="topbar">
 <div>💰 Số dư: <span id="balance">10000000</span></div>
-<div>💰 Tổng bàn: <span id="totalTable">0</span></div>
+<div>👥 <span id="online">500</span> online</div>
 </div>
 
-<div class="online" id="onlineBox"></div>
+<div class="marquee">
+<span id="topWinText">🏆 Minh thắng 25,000,000</span>
+</div>
 
 <div class="timer" id="timer">30</div>
 
 <div class="board">
-<div class="side tai" onclick="selectSide('tai',this)">TÀI (11-17)</div>
-<div class="side xiu" onclick="selectSide('xiu',this)">XỈU (4-10)</div>
+<div class="side tai" onclick="selectSide('tai',this)">TÀI</div>
+<div class="side xiu" onclick="selectSide('xiu',this)">XỈU</div>
 </div>
 
 <div class="dice-area">
@@ -138,30 +169,31 @@ body{
 <span class="dice" id="d3">🎲</span>
 </div>
 
-<!-- CHIP -->
+<div class="roadmap" id="roadmap"></div>
+
+<div class="fakeList" id="fakeList"></div>
+
 <div class="chips" id="chips"></div>
 
 <script>
 
 let balance=10000000;
 let selected=null;
-let currentChip=0;
-let totalBet=0;
+let chipValue=0;
 let time=30;
-let lockBet=false;
-let stats=JSON.parse(localStorage.getItem("stats"))||[];
+let lock=false;
+let roadData=JSON.parse(localStorage.getItem("roadData"))||[];
 
-const chipValues=[5000,10000,50000,200000,500000,1000000,5000000,10000000,100000000];
+const chips=[5000,10000,50000,200000,500000,1000000,5000000,10000000,100000000];
 
-// ===== CHIP =====
-chipValues.forEach(val=>{
+chips.forEach(val=>{
     let c=document.createElement("div");
     c.className="chip";
     c.innerText=format(val);
     c.onclick=()=>{
         document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
         c.classList.add("active");
-        currentChip=val;
+        chipValue=val;
     }
     document.getElementById("chips").appendChild(c);
 });
@@ -172,113 +204,88 @@ function format(n){
     return n;
 }
 
-// ===== CHỌN TÀI/XỈU =====
 function selectSide(side,el){
-    if(lockBet) return alert("Đã khóa cược!");
-    if(!currentChip) return alert("Chọn chip!");
-
+    if(lock||!chipValue) return;
+    selected=side;
     document.querySelectorAll(".side").forEach(s=>s.classList.remove("active"));
     el.classList.add("active");
-
-    selected=side;
-    totalBet+=currentChip;
-
-    document.getElementById("totalTable").innerText=
-    (parseInt(document.getElementById("totalTable").innerText)+currentChip).toLocaleString();
 }
 
-// ===== TIMER =====
 setInterval(()=>{
     time--;
-    if(time<=5){
-        lockBet=true;
-        document.getElementById("timer").classList.add("red");
-    }else{
-        document.getElementById("timer").classList.remove("red");
-    }
-
-    if(time<=0){
-        runGame();
-        time=30;
-        lockBet=false;
-        totalBet=0;
-        document.getElementById("totalTable").innerText="0";
-        document.querySelectorAll(".side").forEach(s=>s.classList.remove("active"));
-    }
-
+    if(time<=5){lock=true;document.getElementById("timer").classList.add("red")}
+    if(time<=0){runGame();time=30;lock=false;document.getElementById("timer").classList.remove("red")}
     document.getElementById("timer").innerText=time;
 },1000);
 
-// ===== GAME =====
 function roll(){return Math.floor(Math.random()*6)+1;}
 
 function runGame(){
-    let d1=roll(),d2=roll(),d3=roll();
-    let total=d1+d2+d3;
+    let a=roll(),b=roll(),c=roll();
+    let total=a+b+c;
 
-    animateDice(d1,d2,d3);
+    animateDice(a,b,c);
 
-    let win=false;
-
-    if(selected=="tai" && total>=11) win=true;
-    if(selected=="xiu" && total<=10) win=true;
-
-    if(win){
-        let payout=totalBet*1;
-        balance+=payout;
-        playWinSound();
-
-        if(total==4||total==17){
-            showWin60();
-        }
-    }else{
-        balance-=totalBet;
+    if(selected){
+        let win=(selected=="tai"&&total>=11)||(selected=="xiu"&&total<=10);
+        if(win){balance+=chipValue;}
+        else{balance-=chipValue;}
     }
 
     document.getElementById("balance").innerText=balance.toLocaleString();
 
-    stats.unshift(total>=11?"T":"X");
-    localStorage.setItem("stats",JSON.stringify(stats));
+    let result=total>=11?"T":"X";
+    roadData.push(result);
+    if(roadData.length>100) roadData.shift();
+    localStorage.setItem("roadData",JSON.stringify(roadData));
+    updateRoadmap();
+
+    selected=null;
 }
 
-// ===== 3D DICE =====
 function animateDice(a,b,c){
     document.getElementById("d1").innerText=a;
     document.getElementById("d2").innerText=b;
     document.getElementById("d3").innerText=c;
-
     document.querySelectorAll(".dice").forEach(d=>{
-        d.style.transform="rotateX(360deg) rotateY(360deg)";
-        setTimeout(()=>{d.style.transform="rotateX(0deg)"},1000);
+        d.style.transform="rotateY(360deg)";
+        setTimeout(()=>d.style.transform="rotateY(0deg)",1000);
     });
 }
 
-// ===== EFFECT 60:1 =====
-function showWin60(){
-    let div=document.createElement("div");
-    div.className="win60";
-    div.innerText="💥 JACKPOT 60:1 💥";
-    document.body.appendChild(div);
-    setTimeout(()=>div.remove(),2000);
+function updateRoadmap(){
+    let map=document.getElementById("roadmap");
+    map.innerHTML="";
+    roadData.forEach(r=>{
+        let dot=document.createElement("div");
+        dot.className="dot "+(r=="T"?"redDot":"blueDot");
+        map.appendChild(dot);
+    });
 }
+updateRoadmap();
 
-// ===== ONLINE 500 FAKE =====
+/* FAKE ONLINE */
 setInterval(()=>{
-    let count=450+Math.floor(Math.random()*50);
-    document.getElementById("onlineBox").innerHTML=
-    "👥 "+count+" người online";
+    document.getElementById("online").innerText=450+Math.floor(Math.random()*50);
 },2000);
 
-// ===== SOUND =====
-let bgMusic=new Audio("https://actions.google.com/sounds/v1/ambiences/casino.ogg");
-bgMusic.loop=true;
-bgMusic.volume=0.3;
-document.body.onclick=()=>bgMusic.play();
+/* TOP WIN */
+setInterval(()=>{
+    let names=["Minh","Huy","An","Long","Khoa","Tuấn"];
+    let name=names[Math.floor(Math.random()*names.length)];
+    let win=Math.floor(Math.random()*30000000);
+    document.getElementById("topWinText").innerText=
+    "🏆 "+name+" thắng "+win.toLocaleString();
+},4000);
 
-function playWinSound(){
-    let audio=new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-    audio.play();
-}
+/* FAKE BET AVATAR */
+setInterval(()=>{
+    let avatars=["🧑","👨","👩","👦","👧"];
+    let avatar=avatars[Math.floor(Math.random()*avatars.length)];
+    let money=Math.floor(Math.random()*5000000);
+    document.getElementById("fakeList").innerHTML=
+    avatar+" cược "+money.toLocaleString()+"<br>"+document.getElementById("fakeList").innerHTML;
+},2000);
 
 </script>
 </body>
