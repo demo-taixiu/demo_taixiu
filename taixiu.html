@@ -9,6 +9,8 @@
 <style>
 body{
     background:radial-gradient(circle,#1f5a34,#0d2517);
+    color:#fff;
+    font-family:Arial;
 }
 
 /* TIMER */
@@ -18,12 +20,29 @@ body{
     font-weight:bold;
     margin:5px 0;
 }
+.timer.red{
+    color:red;
+}
 
-/* ONLINE */
-.online{
-    text-align:center;
-    font-size:14px;
-    opacity:.8;
+/* CHIP */
+.chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    margin:10px 0;
+}
+.chip{
+    padding:8px 12px;
+    border-radius:50px;
+    background:gold;
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+}
+.chip.active{
+    background:red;
+    color:#fff;
 }
 
 /* GRID */
@@ -32,21 +51,13 @@ body{
     grid-template-columns:repeat(7,1fr);
     gap:4px;
 }
-
 .cell{
     border:1px solid rgba(255,255,255,.3);
     padding:12px 5px;
     text-align:center;
     cursor:pointer;
-    background:rgba(0,0,0,.2);
-    font-weight:bold;
+    background:rgba(0,0,0,.3);
 }
-
-.cell small{
-    display:block;
-    opacity:.7;
-}
-
 .cell.active{
     background:gold;
     color:#000;
@@ -59,163 +70,184 @@ body{
     margin:10px 0;
 }
 
-/* BÃO EFFECT */
-.boom{
-    animation:flash 0.3s infinite alternate;
-}
-@keyframes flash{
-    from{background:gold;}
-    to{background:#ffcc00;}
-}
-
 /* HISTORY */
 .history{
-    margin-top:10px;
-    font-size:14px;
     text-align:center;
+    margin-top:10px;
 }
 </style>
 </head>
 
-<body onload="updateHeader()">
+<body onload="initGame()">
 
 <div class="header">
-    <div>🎲 TÀI XỈU CASINO</div>
-    <div>💰 <span id="balance"></span></div>
+    💰 <span id="balance"></span>
 </div>
 
-<div class="timer">⏳ Còn <span id="countdown">30</span>s</div>
-<div class="online">🌐 <span id="online">200</span> người đang online</div>
+<div class="timer" id="timer">⏳ 30</div>
 
 <div class="dice" id="dice">🎲 🎲 🎲</div>
 
-<input type="number" id="betAmount"
-placeholder="Nhập tiền cược"
-style="width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px;">
+<!-- CHIP -->
+<div class="chips" id="chips"></div>
 
-<!-- BÃO -->
-<div class="grid" id="baoGrid"></div>
+<div style="text-align:center">
+Tổng cược: <span id="currentBet">0</span>
+</div>
 
-<!-- TỔNG -->
+<!-- BÀN -->
 <div class="grid" id="sumGrid"></div>
 
-<div id="result" style="text-align:center;margin-top:10px;font-weight:bold"></div>
-
 <div class="history">
-📊 Thống kê: <span id="stats"></span>
+📊 Cầu: <span id="stats"></span>
 </div>
 
 <script src="app.js"></script>
 
 <script>
 
-// ===== TIMER =====
 let time=30;
 let lockBet=false;
+let selected=null;
+let currentChip=0;
+let currentBet=0;
+let statsList=JSON.parse(localStorage.getItem("statsList"))||[];
 
-setInterval(()=>{
-    time--;
-    if(time<=0){
-        runGame();
-        time=30;
-        lockBet=false;
-    }
-    if(time<=5) lockBet=true;
+// ===== INIT =====
+function initGame(){
+    updateHeader();
+    createChips();
+    createBoard();
+    updateStats();
+    startTimer();
+}
 
-    document.getElementById("countdown").innerText=time;
-},1000);
+// ===== CHIP =====
+const chipValues=[5000,10000,50000,200000,500000,1000000,5000000,10000000,100000000];
 
-// ===== ONLINE FAKE =====
-setInterval(()=>{
-    document.getElementById("online").innerText=
-    180+Math.floor(Math.random()*40);
-},2000);
+function createChips(){
+    const box=document.getElementById("chips");
+    chipValues.forEach(val=>{
+        let div=document.createElement("div");
+        div.className="chip";
+        div.innerText=format(val);
+        div.onclick=()=>{
+            document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+            div.classList.add("active");
+            currentChip=val;
+        };
+        box.appendChild(div);
+    });
+}
 
-// ===== ODDS =====
+function format(n){
+    if(n>=1000000) return (n/1000000)+"TR";
+    if(n>=1000) return (n/1000)+"K";
+    return n;
+}
+
+// ===== BOARD =====
 const oddsSum={
 4:60,5:30,6:18,7:12,8:8,9:7,10:6,
 11:6,12:7,13:8,14:12,15:18,16:30,17:60
 };
 
-let selected=null;
-let statsList=[];
-
-// ===== BÃO =====
-const baoGrid=document.getElementById("baoGrid");
-for(let i=1;i<=6;i++){
-    let div=document.createElement("div");
-    div.className="cell";
-    div.innerHTML=i+":"+i+":"+i+"<small>150:1</small>";
-    div.onclick=()=>select(div,"bao"+i);
-    baoGrid.appendChild(div);
+function createBoard(){
+    const grid=document.getElementById("sumGrid");
+    for(let i=4;i<=17;i++){
+        let div=document.createElement("div");
+        div.className="cell";
+        div.innerHTML=i+"<br>"+oddsSum[i]+":1";
+        div.onclick=()=>placeBet(i,div);
+        grid.appendChild(div);
+    }
 }
 
-// ===== TỔNG =====
-const sumGrid=document.getElementById("sumGrid");
-for(let i=4;i<=17;i++){
-    let div=document.createElement("div");
-    div.className="cell";
-    div.innerHTML=i+"<small>"+oddsSum[i]+":1</small>";
-    div.onclick=()=>select(div,i);
-    sumGrid.appendChild(div);
-}
-
-function select(el,type){
+function placeBet(num,el){
     if(lockBet) return alert("Đã khóa cược!");
-    document.querySelectorAll(".cell").forEach(c=>c.classList.remove("active"));
+    if(!currentChip) return alert("Chọn chip!");
+
+    selected=num;
+    currentBet+=currentChip;
+
+    document.getElementById("currentBet").innerText=
+    currentBet.toLocaleString();
+
     el.classList.add("active");
-    selected=type;
 }
 
+// ===== TIMER =====
+function startTimer(){
+    setInterval(()=>{
+        time--;
+
+        if(time<=5){
+            lockBet=true;
+            document.getElementById("timer").classList.add("red");
+        }else{
+            document.getElementById("timer").classList.remove("red");
+        }
+
+        if(time<=0){
+            runGame();
+            time=30;
+            lockBet=false;
+            currentBet=0;
+            document.getElementById("currentBet").innerText=0;
+            document.querySelectorAll(".cell").forEach(c=>c.classList.remove("active"));
+        }
+
+        document.getElementById("timer").innerText="⏳ "+time;
+    },1000);
+}
+
+// ===== GAME =====
 function roll(){return Math.floor(Math.random()*6)+1;}
 
 function runGame(){
-    let bet=parseInt(document.getElementById("betAmount").value)||0;
-
     let d1=roll(),d2=roll(),d3=roll();
     let total=d1+d2+d3;
 
     document.getElementById("dice").innerHTML=
     d1+" 🎲 "+d2+" 🎲 "+d3;
 
-    let win=0;
-
-    // BÃO
-    if(selected && selected.includes("bao")){
-        let num=parseInt(selected.replace("bao",""));
-        if(d1==num&&d2==num&&d3==num){
-            win=bet*150;
-            document.body.classList.add("boom");
-            setTimeout(()=>document.body.classList.remove("boom"),1000);
-        }
-    }
-
-    // TỔNG
-    if(typeof selected==="number" && total==selected){
-        win=bet*oddsSum[selected];
-    }
-
-    if(win>0){
+    if(selected && total==selected){
+        let win=currentBet*oddsSum[selected];
         balance+=win;
-        document.getElementById("result").innerHTML="🎉 THẮNG +"+win;
-        playWinSound();
+        playWin();
     }else{
-        balance-=bet;
-        document.getElementById("result").innerHTML="❌ Thua";
+        balance-=currentBet;
     }
 
     vip=Math.floor(balance/2000000)+1;
     save();
     updateHeader();
 
-    // THỐNG KÊ
+    // LƯU CẦU
     statsList.unshift(total>=11?"T":"X");
-    if(statsList.length>20) statsList.pop();
-    document.getElementById("stats").innerText=statsList.join(" ");
+    if(statsList.length>50) statsList.pop();
+    localStorage.setItem("statsList",JSON.stringify(statsList));
+    updateStats();
+
+    selected=null;
+}
+
+// ===== FAKE NGƯỜI CHƠI =====
+setInterval(()=>{
+    let names=["Minh","Huy","An","Long","Khoa","Tuấn"];
+    let randomName=names[Math.floor(Math.random()*names.length)];
+    let randomMoney=Math.floor(Math.random()*5000000);
+    console.log(randomName+" cược "+randomMoney);
+},2000);
+
+// ===== STATS =====
+function updateStats(){
+    document.getElementById("stats").innerText=
+    statsList.join(" ");
 }
 
 // ===== SOUND =====
-function playWinSound(){
+function playWin(){
     let audio=new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
     audio.play();
 }
