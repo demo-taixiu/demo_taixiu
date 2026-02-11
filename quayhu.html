@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quay Hũ Mini</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial;
+  background:radial-gradient(circle,#4b0000,#1a0000);
+  color:white;
+  text-align:center;
+}
+
+/* TOP */
+.top{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  background:#111;
+  font-size:14px;
+}
+
+.jackpot{
+  font-size:20px;
+  color:gold;
+  margin:10px 0;
+  text-shadow:0 0 10px gold;
+}
+
+/* SLOT */
+.slot{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:20px 0;
+}
+
+.reel{
+  width:80px;
+  height:80px;
+  background:#222;
+  border:3px solid gold;
+  border-radius:10px;
+  font-size:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* BUTTON */
+button{
+  background:gold;
+  color:black;
+  border:none;
+  padding:10px 25px;
+  font-size:16px;
+  border-radius:50px;
+  margin:10px;
+}
+
+/* BET */
+.bet{
+  margin:10px;
+}
+
+.fly{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  color:gold;
+  font-size:20px;
+  animation:fly 1s forwards;
+}
+@keyframes fly{
+  from{opacity:1; transform:translate(-50%,-50%)}
+  to{opacity:0; transform:translate(-50%,-100%)}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+<div>💰 <span id="balance">5,000,000</span></div>
+<div>🎰 Quay Hũ</div>
+</div>
+
+<div class="jackpot">
+🔥 HŨ: <span id="jackpot">1,000,000</span>
+</div>
+
+<div class="slot">
+<div class="reel" id="r1">❓</div>
+<div class="reel" id="r2">❓</div>
+<div class="reel" id="r3">❓</div>
+</div>
+
+<div class="bet">
+Cược:
+<select id="betAmount">
+<option value="10000">10K</option>
+<option value="50000">50K</option>
+<option value="100000">100K</option>
+<option value="500000">500K</option>
+</select>
+</div>
+
+<button onclick="spin()">QUAY</button>
+
+<script>
+let balance=5000000;
+let jackpot=1000000;
+let spinning=false;
+
+const icons=["🍒","🍋","💎","7️⃣","👑"];
+
+function updateUI(){
+  document.getElementById("balance").innerText=balance.toLocaleString();
+  document.getElementById("jackpot").innerText=jackpot.toLocaleString();
+}
+
+function randomIcon(){
+  return icons[Math.floor(Math.random()*icons.length)];
+}
+
+function spin(){
+  if(spinning) return;
+
+  let bet=parseInt(document.getElementById("betAmount").value);
+  if(balance<bet) return alert("Không đủ tiền!");
+
+  spinning=true;
+  balance-=bet;
+  jackpot+=Math.floor(bet*0.2);
+  updateUI();
+
+  let count=0;
+  let interval=setInterval(()=>{
+    r1.innerText=randomIcon();
+    r2.innerText=randomIcon();
+    r3.innerText=randomIcon();
+    count++;
+    if(count>15){
+      clearInterval(interval);
+      checkWin(bet);
+      spinning=false;
+    }
+  },100);
+}
+
+function checkWin(bet){
+  let a=r1.innerText;
+  let b=r2.innerText;
+  let c=r3.innerText;
+
+  if(a===b && b===c){
+    if(a==="👑"){
+      balance+=jackpot;
+      showFly("NỔ HŨ +"+jackpot.toLocaleString());
+      jackpot=1000000;
+    }else{
+      let win=bet*5;
+      balance+=win;
+      showFly("+"+win.toLocaleString());
+    }
+  }
+  updateUI();
+}
+
+function showFly(text){
+  let f=document.createElement("div");
+  f.className="fly";
+  f.innerText=text;
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),1000);
+}
+
+updateUI();
+</script>
+
+</body>
+</html>
