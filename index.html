@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sảnh Game VIP</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background: linear-gradient(180deg,#2c1e5f,#0f0c29);
+    color:white;
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 15px;
+    background:rgba(0,0,0,0.4);
+}
+
+.logo{
+    font-size:22px;
+    font-weight:bold;
+    color:gold;
+}
+
+.coin-box{
+    background:#3b2a78;
+    padding:5px 12px;
+    border-radius:20px;
+}
+
+/* MENU TAB */
+.tabs{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin:15px 0;
+}
+
+.tab{
+    padding:8px 15px;
+    background:#3c2f91;
+    border-radius:20px;
+    cursor:pointer;
+}
+
+.tab.active{
+    background:gold;
+    color:black;
+}
+
+/* GAME GRID */
+.games{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+    gap:15px;
+    padding:15px;
+}
+
+.game-card{
+    background:linear-gradient(180deg,#6a4df3,#2a1c7a);
+    border-radius:15px;
+    padding:10px;
+    text-align:center;
+    box-shadow:0 0 10px rgba(255,215,0,0.4);
+    transition:0.3s;
+}
+
+.game-card:hover{
+    transform:scale(1.05);
+}
+
+.game-card img{
+    width:100%;
+    border-radius:10px;
+}
+
+.game-title{
+    margin-top:8px;
+    font-weight:bold;
+}
+
+.jackpot{
+    font-size:12px;
+    color:gold;
+}
+
+/* FOOTER */
+.footer{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    display:flex;
+    justify-content:space-around;
+    background:#1b153f;
+    padding:10px 0;
+}
+
+.footer div{
+    text-align:center;
+    font-size:12px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">🔥 TOP HŨ VIP</div>
+    <div class="coin-box">💰 1,000,000</div>
+</div>
+
+<div class="tabs">
+    <div class="tab active">Tất cả</div>
+    <div class="tab">Slot</div>
+    <div class="tab">Mini Game</div>
+    <div class="tab">Game Bài</div>
+</div>
+
+<div class="games" id="gameList">
+</div>
+
+<div class="footer">
+    <div>🏠 Trang chủ</div>
+    <div>🎁 Giftcode</div>
+    <div>👑 Đại lý</div>
+    <div>⚙ Cài đặt</div>
+</div>
+
+<script>
+const games = [
+    "Tài Xỉu","Xóc Đĩa","Mini Poker","Bầu Cua",
+    "Slot Panda","Ngộ Không","Zeus","Đập Hũ",
+    "777","PUBG","Thủy Cung","Siêu Nổ"
+];
+
+const gameList = document.getElementById("gameList");
+
+games.forEach(name=>{
+    const div = document.createElement("div");
+    div.className="game-card";
+    div.innerHTML=`
+        <img src="https://picsum.photos/200/200?random=${Math.random()}">
+        <div class="game-title">${name}</div>
+        <div class="jackpot">Hũ: ${(Math.random()*10000000).toFixed(0)}</div>
+    `;
+    gameList.appendChild(div);
+});
+</script>
+
+</body>
+</html>
