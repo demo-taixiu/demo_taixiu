@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIP Casino</title>
+<title>TOP HŨ VIP</title>
 
 <style>
 body{
     margin:0;
-    font-family:Arial;
-    background: radial-gradient(circle at top,#3a1c71,#0f0c29);
+    font-family:Arial, Helvetica, sans-serif;
+    background: radial-gradient(circle at top,#3a1c71,#140f2d);
     color:white;
 }
 
@@ -18,87 +18,100 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:12px;
-    background:#2b145f;
+    padding:15px;
+    background:#2a1155;
+    box-shadow:0 0 20px gold;
 }
 
 .logo{
+    font-size:20px;
     font-weight:bold;
     color:gold;
-    font-size:18px;
+    text-shadow:0 0 10px gold;
 }
 
 .vip{
     background:gold;
     color:black;
-    padding:6px 14px;
-    border-radius:25px;
+    padding:6px 15px;
+    border-radius:30px;
     font-weight:bold;
 }
 
-/* WRAPPER */
+/* LAYOUT */
 .wrapper{
-    display:flex;
-    gap:10px;
-    padding:10px;
+    padding:15px;
 }
 
-/* TOP BOXES */
-.side-box{
-    width:120px;
-    background:rgba(0,0,0,0.4);
-    border-radius:15px;
-    padding:10px;
-    font-size:13px;
-}
-
-.side-box h3{
-    font-size:14px;
-    color:gold;
-    margin-bottom:8px;
-}
-
-/* GAME LIST */
-.games{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-}
-
+/* GAME CARD */
 .game-card{
-    background:linear-gradient(180deg,#5c3df0,#2a1c7a);
-    border-radius:20px;
-    padding:10px;
-    text-align:center;
-    box-shadow:0 0 20px rgba(255,215,0,0.4);
+    position:relative;
+    margin-bottom:25px;
+    border-radius:25px;
+    overflow:hidden;
+    cursor:pointer;
     transition:0.3s;
+}
+
+/* VIỀN VÀNG CHẠY */
+.game-card::before{
+    content:"";
+    position:absolute;
+    inset:-3px;
+    border-radius:25px;
+    background:linear-gradient(45deg,gold,orange,gold);
+    z-index:-1;
+    animation:rotate 3s linear infinite;
+}
+
+@keyframes rotate{
+    0%{filter:hue-rotate(0deg);}
+    100%{filter:hue-rotate(360deg);}
 }
 
 .game-card img{
     width:100%;
-    border-radius:15px;
+    height:220px;
+    object-fit:cover;
+    display:block;
+}
+
+/* OVERLAY */
+.overlay{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    padding:15px;
+    background:linear-gradient(to top,rgba(0,0,0,0.8),transparent);
 }
 
 .game-title{
-    margin-top:8px;
-    font-size:18px;
+    font-size:22px;
+    font-weight:bold;
+    text-shadow:0 0 10px gold;
 }
 
 .jackpot{
     color:gold;
     font-weight:bold;
+    margin-top:5px;
 }
 
-/* MOBILE FIX */
-@media(max-width:768px){
-    .wrapper{
-        flex-direction:column;
-    }
-
-    .side-box{
-        width:100%;
-    }
+/* VIP LEVEL UP EFFECT */
+.level-up{
+    position:fixed;
+    top:40%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:gold;
+    color:black;
+    padding:20px 30px;
+    border-radius:20px;
+    font-weight:bold;
+    font-size:22px;
+    display:none;
+    box-shadow:0 0 40px gold;
 }
 </style>
 </head>
@@ -106,53 +119,52 @@ body{
 
 <div class="header">
     <div class="logo">🔥 TOP HŨ VIP</div>
-    <div class="vip">💎 VIP 5</div>
+    <div class="vip">💎 VIP <span id="vipLevel">1</span></div>
 </div>
 
-<!-- TOP HŨ -->
-<div class="tophu">
-    <h3>🎰 TOP HŨ</h3>
-    <div>Panda: <span id="top1">5000000</span></div>
-    <div>Zeus: <span id="top2">4200000</span></div>
-    <div>Ngộ Không: <span id="top3">3900000</span></div>
-</div>
+<div class="wrapper" id="gameList"></div>
 
-<!-- GAME -->
-<div class="games" id="gameList"></div>
+<div class="level-up" id="levelUpBox">💎 VIP LEVEL UP!</div>
 
-<!-- BẢNG XẾP HẠNG -->
-<div class="rank">
-    <h3>🏆 TOP</h3>
-    <div>1. Panda</div>
-    <div>2. Zeus</div>
-    <div>3. Mini</div>
-</div>
-
-<audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
 
 <script>
+let money = 1000000;
+let vipLevel = 1;
+
 const games = [
-"Tài Xỉu","Xóc Đĩa","Mini Poker","Bầu Cua",
-"Panda","Ngộ Không","Zeus","Đập Hũ",
-"777","PUBG","Thủy Cung","Siêu Nổ"
+"Tài Xỉu",
+"Xóc Đĩa",
+"Mini Poker",
+"Bầu Cua",
+"Panda",
+"Ngộ Không",
+"Zeus"
 ];
 
 const gameList = document.getElementById("gameList");
+const vipText = document.getElementById("vipLevel");
+const levelUpBox = document.getElementById("levelUpBox");
 const clickSound = document.getElementById("clickSound");
 
 games.forEach(name=>{
     const div = document.createElement("div");
     div.className="game-card";
     div.innerHTML=`
-        <img src="https://picsum.photos/200?random=${Math.random()}">
-        <div>${name}</div>
-        <div class="jackpot" id="jackpot${name}">
-            Hũ: ${Math.floor(Math.random()*5000000)}
+        <img src="https://picsum.photos/500/300?random=${Math.random()}">
+        <div class="overlay">
+            <div class="game-title">${name}</div>
+            <div class="jackpot" id="jackpot-${name}">
+                Hũ: ${Math.floor(Math.random()*5000000)}
+            </div>
         </div>
     `;
+
     div.onclick=()=>{
         clickSound.play();
-    }
+        money += 500000;
+        checkVIP();
+    };
+
     gameList.appendChild(div);
 });
 
@@ -160,14 +172,23 @@ games.forEach(name=>{
 setInterval(()=>{
     document.querySelectorAll(".jackpot").forEach(j=>{
         let num=parseInt(j.innerText.replace(/\D/g,''));
-        num += Math.floor(Math.random()*1000);
+        num += Math.floor(Math.random()*2000);
         j.innerText="Hũ: "+num;
     });
-
-    document.getElementById("top1").innerText =
-    parseInt(document.getElementById("top1").innerText)+Math.floor(Math.random()*500);
-
 },2000);
+
+/* VIP TĂNG THEO TIỀN */
+function checkVIP(){
+    let newLevel = Math.floor(money / 2000000) + 1;
+    if(newLevel > vipLevel){
+        vipLevel = newLevel;
+        vipText.innerText = vipLevel;
+        levelUpBox.style.display="block";
+        setTimeout(()=>{
+            levelUpBox.style.display="none";
+        },2000);
+    }
+}
 </script>
 
 </body>
