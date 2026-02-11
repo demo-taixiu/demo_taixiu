@@ -3,70 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sicbo Pro</title>
+<title>Tài Xỉu Pro</title>
 
 <style>
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:Arial;
-  background:radial-gradient(circle,#1e4d2b,#0c1f13);
+  background:radial-gradient(circle,#184d2b,#0b1f12);
   color:white;
 }
 
 /* TOP */
-.topbar{
+.top{
   display:flex;
   justify-content:space-between;
-  padding:10px;
+  padding:8px 12px;
   background:#111;
   font-size:14px;
 }
 
-/* DICE */
-.dice-area{
+.status{
   text-align:center;
-  font-size:40px;
-  margin:15px 0;
+  font-size:13px;
+  padding:4px;
+  color:gold;
+}
+
+/* DICE */
+.dice{
+  text-align:center;
+  font-size:38px;
+  letter-spacing:10px;
+  margin:10px 0;
 }
 
 /* BOARD */
 .board{
   display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:3px;
-  padding:5px;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+  padding:8px;
 }
 
 .cell{
-  position:relative;
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.3);
+  border-radius:8px;
   text-align:center;
   padding:12px 5px;
-  font-size:14px;
-  cursor:pointer;
+  font-size:13px;
+  position:relative;
 }
 
-.cell:hover{background:rgba(255,255,255,0.2);}
+.cell.win{
+  border:2px solid gold;
+  box-shadow:0 0 10px gold;
+}
 
 /* CHIP NỔI */
 .chip-bet{
   position:absolute;
-  bottom:5px;
-  right:5px;
+  bottom:4px;
+  right:4px;
   background:gold;
   color:black;
+  width:38px;
+  height:38px;
   border-radius:50%;
-  width:40px;
-  height:40px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:11px;
+  font-size:10px;
   font-weight:bold;
 }
 
-/* CHIP SELECT */
+/* CHIPS */
 .chips{
   position:fixed;
   bottom:0;
@@ -84,38 +96,56 @@ body{
   padding:6px 10px;
   border-radius:50px;
   font-weight:bold;
-  cursor:pointer;
+  font-size:13px;
 }
-.chip.active{background:red;color:white}
 
-/* JACKPOT */
-.jackpot{
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:radial-gradient(circle,gold,orange,black);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:40px;
-  font-weight:bold;
-  color:black;
-  animation:flash 0.3s infinite alternate;
+.chip.active{
+  background:red;
+  color:white;
 }
-@keyframes flash{
-  from{opacity:0.7}
-  to{opacity:1}
+
+/* ROADMAP */
+.road{
+  display:flex;
+  gap:4px;
+  overflow-x:auto;
+  padding:5px 8px;
+}
+
+.dot{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+}
+
+.dot.tai{background:red}
+.dot.xiu{background:blue}
+
+/* MONEY FLY */
+.fly{
+  position:absolute;
+  color:gold;
+  font-weight:bold;
+  animation:fly 1s forwards;
+}
+@keyframes fly{
+  from{transform:translateY(0);opacity:1}
+  to{transform:translateY(-40px);opacity:0}
 }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-<div>💰 Số dư: <span id="balance">5000000</span></div>
+<div class="top">
+<div>💰 <span id="balance">5,000,000</span></div>
 <div>⏳ <span id="timer">20</span></div>
 </div>
 
-<div class="dice-area" id="dice">🎲 🎲 🎲</div>
+<div class="status" id="status">ĐANG MỞ CƯỢC</div>
+
+<div class="dice" id="dice">🎲 🎲 🎲</div>
+
+<div class="road" id="road"></div>
 
 <div class="board" id="board"></div>
 
@@ -124,17 +154,14 @@ body{
 <script>
 let balance=5000000;
 let chipValue=0;
-let time=20;
+let timer=20;
+let phase="bet";
 let bets={};
+let history=[];
 
 const payout={
   tai:1,
-  xiu:1,
-  bao:150,
-  total:{
-    4:60,5:30,6:18,7:12,8:8,9:7,10:6,
-    11:6,12:7,13:8,14:12,15:18,16:30,17:60
-  }
+  xiu:1
 };
 
 const chipList=[5000,10000,50000,200000,500000,1000000];
@@ -142,117 +169,115 @@ const chipList=[5000,10000,50000,200000,500000,1000000];
 chipList.forEach(val=>{
   let c=document.createElement("div");
   c.className="chip";
-  c.innerText=(val>=1000?val/1000+"K":val);
+  c.innerText=val/1000+"K";
   c.onclick=()=>{
     document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
     c.classList.add("active");
     chipValue=val;
   }
-  document.getElementById("chips").appendChild(c);
+  chips.appendChild(c);
 });
 
-/* TẠO BOARD */
-
-/* TÀI XỈU */
-["TÀI 1:1","XỈU 1:1"].forEach(type=>{
+/* CREATE BOARD */
+["tai","xiu"].forEach(type=>{
   let cell=document.createElement("div");
   cell.className="cell";
-  cell.innerHTML=type;
-  cell.onclick=()=>placeBet(type);
-  document.getElementById("board").appendChild(cell);
+  cell.innerHTML= type==="tai" ? "TÀI<br>1:1" : "XỈU<br>1:1";
+  cell.onclick=()=>placeBet(type,cell);
+  board.appendChild(cell);
 });
 
-/* BÃO 1→6 */
-for(let i=1;i<=6;i++){
-  let cell=document.createElement("div");
-  cell.className="cell";
-  cell.innerHTML="BÃO "+i+"<br>150:1";
-  cell.onclick=()=>placeBet("bao"+i);
-  document.getElementById("board").appendChild(cell);
-}
+/* PLACE BET */
+function placeBet(type,cell){
+  if(phase!=="bet" || !chipValue) return;
+  if(balance<chipValue) return;
 
-/* TỔNG 4→17 */
-for(let i=4;i<=17;i++){
-  let cell=document.createElement("div");
-  cell.className="cell";
-  cell.innerHTML=i+"<br>"+payout.total[i]+":1";
-  cell.onclick=()=>placeBet("total"+i);
-  document.getElementById("board").appendChild(cell);
-}
-
-/* ĐẶT CƯỢC */
-function placeBet(type){
-  if(!chipValue) return;
-
-  bets[type]=(bets[type]||0)+chipValue;
   balance-=chipValue;
+  bets[type]=(bets[type]||0)+chipValue;
 
   updateBalance();
 
-  let cell=[...document.querySelectorAll(".cell")]
-    .find(c=>c.innerText.includes(type.replace("total","").replace("bao","BÃO ")));
-
+  cell.querySelector(".chip-bet")?.remove();
   let chip=document.createElement("div");
   chip.className="chip-bet";
   chip.innerText=(bets[type]/1000)+"K";
-  cell.querySelector(".chip-bet")?.remove();
   cell.appendChild(chip);
 }
 
 function updateBalance(){
-  document.getElementById("balance").innerText=balance.toLocaleString();
+  balanceEl.innerText=balance.toLocaleString();
 }
 
 /* TIMER */
 setInterval(()=>{
-  time--;
-  document.getElementById("timer").innerText=time;
-  if(time<=0){
+  timer--;
+  timerEl.innerText=timer;
+  if(timer<=0){
     runGame();
-    time=20;
+    timer=20;
   }
 },1000);
+
+const balanceEl=document.getElementById("balance");
+const timerEl=document.getElementById("timer");
 
 /* GAME */
 function roll(){return Math.floor(Math.random()*6)+1;}
 
 function runGame(){
+  phase="roll";
+  status.innerText="ĐANG MỞ KẾT QUẢ";
+
   let a=roll(),b=roll(),c=roll();
+  dice.innerText=a+" "+b+" "+c;
   let total=a+b+c;
 
-  document.getElementById("dice").innerText=a+" "+b+" "+c;
+  let result = total>=11 ? "tai" : "xiu";
+  history.push(result);
+  updateRoad();
 
-  /* TAM HOA */
-  if(a===b&&b===c){
-    if(bets["bao"+a]){
-      balance+=bets["bao"+a]*payout.bao;
-    }
-    showJackpot();
+  let win=0;
+  if(bets[result]){
+    win=bets[result]*2;
+    balance+=win;
+    showFly("+"+win.toLocaleString());
   }
 
-  /* TÀI XỈU */
-  if(total>=11 && total<=17){
-    if(bets["TÀI 1:1"]) balance+=bets["TÀI 1:1"]*2;
-  }else{
-    if(bets["XỈU 1:1"]) balance+=bets["XỈU 1:1"]*2;
-  }
+  highlight(result);
 
-  /* TỔNG */
-  if(bets["total"+total]){
-    balance+=bets["total"+total]*(payout.total[total]+1);
-  }
-
-  bets={};
-  document.querySelectorAll(".chip-bet").forEach(c=>c.remove());
-  updateBalance();
+  setTimeout(()=>{
+    bets={};
+    document.querySelectorAll(".chip-bet").forEach(c=>c.remove());
+    document.querySelectorAll(".cell").forEach(c=>c.classList.remove("win"));
+    phase="bet";
+    status.innerText="ĐANG MỞ CƯỢC";
+    updateBalance();
+  },2000);
 }
 
-function showJackpot(){
-  let j=document.createElement("div");
-  j.className="jackpot";
-  j.innerText="💥 TAM HOA 💥";
-  document.body.appendChild(j);
-  setTimeout(()=>j.remove(),2000);
+function highlight(type){
+  let cell=[...document.querySelectorAll(".cell")]
+    .find(c=>c.innerHTML.toLowerCase().includes(type));
+  cell.classList.add("win");
+}
+
+function updateRoad(){
+  road.innerHTML="";
+  history.slice(-20).forEach(r=>{
+    let dot=document.createElement("div");
+    dot.className="dot "+r;
+    road.appendChild(dot);
+  });
+}
+
+function showFly(text){
+  let f=document.createElement("div");
+  f.className="fly";
+  f.innerText=text;
+  f.style.left="50%";
+  f.style.top="40%";
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),1000);
 }
 </script>
 
