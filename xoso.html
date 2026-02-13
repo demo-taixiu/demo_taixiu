@@ -2,84 +2,106 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Quay Xổ Số</title>
+<title>Xổ Số Truyền Thống</title>
+
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background:radial-gradient(circle,#5b0000,#1a0000);
+  font-family:Arial, sans-serif;
+  background:linear-gradient(#8b0000,#2b0000);
   color:white;
   text-align:center;
 }
 
 .topbar{
-  padding:10px;
   background:#000;
+  padding:10px;
 }
 
-button.back{
-  background:gold;
+button{
+  padding:10px 20px;
+  font-weight:bold;
   border:none;
-  padding:8px 15px;
   border-radius:8px;
-  font-weight:bold;
-}
-
-#machine{
-  width:260px;
-  height:260px;
-  margin:30px auto;
-  border-radius:50%;
-  border:8px solid gold;
-  background:radial-gradient(circle,#222,#000);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:60px;
-  font-weight:bold;
-  box-shadow:0 0 30px gold;
-}
-
-button.spin{
-  padding:12px 25px;
-  font-size:18px;
   background:gold;
-  border:none;
-  border-radius:10px;
+  cursor:pointer;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+h2{
+  color:gold;
+  margin:15px 0;
+}
+
+table{
+  width:95%;
+  max-width:520px;
+  margin:15px auto;
+  border-collapse:collapse;
+  background:#330000;
+  border:3px solid gold;
+}
+
+td{
+  border:1px solid gold;
+  padding:12px;
+  font-size:22px;
+}
+
+td:first-child{
+  width:40%;
   font-weight:bold;
+  color:gold;
+}
+
+.number{
+  letter-spacing:3px;
+  font-weight:bold;
+  font-size:24px;
+}
+
+.running{
+  color:#00ffcc;
 }
 </style>
 </head>
+
 <body>
 
 <div class="topbar">
-  <button class="back" onclick="location.href='index.html'">⬅ Về Sảnh</button>
+  <button onclick="location.href='index.html'">⬅ Về Sảnh</button>
 </div>
 
-<h2>🎰 QUAY XỔ SỐ</h2>
+<h2>🎰 XỔ SỐ TRUYỀN THỐNG</h2>
 
-<div id="machine">??</div>
+<table>
+<tr><td>Giải 1</td><td class="number" id="g1">-----</td></tr>
+<tr><td>Giải 2</td><td class="number" id="g2">-----</td></tr>
+<tr><td>Giải 3</td><td class="number" id="g3">-----</td></tr>
+<tr><td>Giải 4</td><td class="number" id="g4">----</td></tr>
+<tr><td>Giải 5</td><td class="number" id="g5">----</td></tr>
+<tr><td>Giải 6</td><td class="number" id="g6">---</td></tr>
+<tr><td>Giải 7</td><td class="number" id="g7">--</td></tr>
+</table>
 
-<input type="number" id="betNumber" min="0" max="99" placeholder="00-99">
-
-<br><br>
-
-<button class="spin" onclick="spin()">QUAY</button>
-
-<h3 id="result"></h3>
+<br>
+<button onclick="startDraw()">QUAY TẤT CẢ</button>
 
 <script>
 
 let drawing=false;
 
-let prizes=[
- {id:"g7", digits:2, time:2000},
- {id:"g6", digits:3, time:2500},
- {id:"g5", digits:4, time:3000},
- {id:"g4", digits:4, time:3500},
- {id:"g3", digits:5, time:4000},
- {id:"g2", digits:5, time:4500},
- {id:"g1", digits:5, time:5000}
+const prizes=[
+ {id:"g7", digits:2, stop:2000},
+ {id:"g6", digits:3, stop:2500},
+ {id:"g5", digits:4, stop:3000},
+ {id:"g4", digits:4, stop:3500},
+ {id:"g3", digits:5, stop:4000},
+ {id:"g2", digits:5, stop:4500},
+ {id:"g1", digits:5, stop:5000}
 ];
 
 function randomNumber(d){
@@ -93,16 +115,19 @@ function startDraw(){
   drawing=true;
 
   prizes.forEach(p=>{
-    let el=document.getElementById(p.id);
 
-    let interval=setInterval(()=>{
+    const el=document.getElementById(p.id);
+    el.classList.add("running");
+
+    const interval=setInterval(()=>{
       el.innerText=randomNumber(p.digits);
-    },80);
+    },70);
 
     setTimeout(()=>{
       clearInterval(interval);
       el.innerText=randomNumber(p.digits);
-    },p.time);
+      el.classList.remove("running");
+    },p.stop);
 
   });
 
