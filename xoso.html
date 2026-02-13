@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Quay Xổ Số</title>
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:radial-gradient(circle,#5b0000,#1a0000);
+  color:white;
+  text-align:center;
+}
+
+.topbar{
+  padding:10px;
+  background:#000;
+}
+
+button.back{
+  background:gold;
+  border:none;
+  padding:8px 15px;
+  border-radius:8px;
+  font-weight:bold;
+}
+
+#machine{
+  width:260px;
+  height:260px;
+  margin:30px auto;
+  border-radius:50%;
+  border:8px solid gold;
+  background:radial-gradient(circle,#222,#000);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:60px;
+  font-weight:bold;
+  box-shadow:0 0 30px gold;
+}
+
+button.spin{
+  padding:12px 25px;
+  font-size:18px;
+  background:gold;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back" onclick="location.href='index.html'">⬅ Về Sảnh</button>
+</div>
+
+<h2>🎰 QUAY XỔ SỐ</h2>
+
+<div id="machine">??</div>
+
+<input type="number" id="betNumber" min="0" max="99" placeholder="00-99">
+
+<br><br>
+
+<button class="spin" onclick="spin()">QUAY</button>
+
+<h3 id="result"></h3>
+
+<script>
+let spinning=false;
+
+function spin(){
+  if(spinning) return;
+
+  let betNum=document.getElementById("betNumber").value;
+  if(betNum===""||betNum<0||betNum>99) return alert("Nhập số hợp lệ!");
+
+  spinning=true;
+  let count=0;
+
+  let interval=setInterval(()=>{
+    let rand=Math.floor(Math.random()*100);
+    document.getElementById("machine").innerText=
+      rand.toString().padStart(2,'0');
+    count++;
+
+    if(count>20){
+      clearInterval(interval);
+      finish(betNum);
+    }
+  },100);
+}
+
+function finish(betNum){
+  let winNum=Math.floor(Math.random()*100);
+  document.getElementById("machine").innerText=
+    winNum.toString().padStart(2,'0');
+
+  if(parseInt(betNum)===winNum){
+    document.getElementById("result").innerText="🎉 TRÚNG!";
+  }else{
+    document.getElementById("result").innerText="❌ Không trúng!";
+  }
+
+  spinning=false;
+}
+</script>
+
+</body>
+</html>
