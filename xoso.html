@@ -69,43 +69,48 @@ button.spin{
 <h3 id="result"></h3>
 
 <script>
-let spinning=false;
 
-function spin(){
-  if(spinning) return;
+let drawing=false;
 
-  let betNum=document.getElementById("betNumber").value;
-  if(betNum===""||betNum<0||betNum>99) return alert("Nhập số hợp lệ!");
+let prizes=[
+ {id:"g7", digits:2, time:2000},
+ {id:"g6", digits:3, time:2500},
+ {id:"g5", digits:4, time:3000},
+ {id:"g4", digits:4, time:3500},
+ {id:"g3", digits:5, time:4000},
+ {id:"g2", digits:5, time:4500},
+ {id:"g1", digits:5, time:5000}
+];
 
-  spinning=true;
-  let count=0;
+function randomNumber(d){
+  return Math.floor(Math.random()*Math.pow(10,d))
+    .toString()
+    .padStart(d,"0");
+}
 
-  let interval=setInterval(()=>{
-    let rand=Math.floor(Math.random()*100);
-    document.getElementById("machine").innerText=
-      rand.toString().padStart(2,'0');
-    count++;
+function startDraw(){
+  if(drawing) return;
+  drawing=true;
 
-    if(count>20){
+  prizes.forEach(p=>{
+    let el=document.getElementById(p.id);
+
+    let interval=setInterval(()=>{
+      el.innerText=randomNumber(p.digits);
+    },80);
+
+    setTimeout(()=>{
       clearInterval(interval);
-      finish(betNum);
-    }
-  },100);
+      el.innerText=randomNumber(p.digits);
+    },p.time);
+
+  });
+
+  setTimeout(()=>{
+    drawing=false;
+  },5500);
 }
 
-function finish(betNum){
-  let winNum=Math.floor(Math.random()*100);
-  document.getElementById("machine").innerText=
-    winNum.toString().padStart(2,'0');
-
-  if(parseInt(betNum)===winNum){
-    document.getElementById("result").innerText="🎉 TRÚNG!";
-  }else{
-    document.getElementById("result").innerText="❌ Không trúng!";
-  }
-
-  spinning=false;
-}
 </script>
 
 </body>
