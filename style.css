@@ -78,23 +78,6 @@ body{
     background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
 }
 
-/* NAV */
-.nav{
-    position:fixed;
-    bottom:0;left:0;right:0;
-    background:#1b0f3d;
-    display:flex;
-    justify-content:space-around;
-    padding:8px 0;
-}
-.nav a{
-    text-decoration:none;
-    color:#ddd;
-    font-size:12px;
-    text-align:center;
-}
-.nav a.active{color:gold}
-
 .game-card{
   width:90%;
   max-width:300px;
@@ -111,3 +94,20 @@ body{
 .game-card:hover{
   transform:scale(1.05);
 }
+
+/* NAV */
+.nav{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:#1b0f3d;
+    display:flex;
+    justify-content:space-around;
+    padding:8px 0;
+}
+.nav a{
+    text-decoration:none;
+    color:#ddd;
+    font-size:12px;
+    text-align:center;
+}
+.nav a.active{color:gold}
